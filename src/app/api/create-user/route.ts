@@ -16,9 +16,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if user already exists in our database
+    // Check if user already exists in our database by clerkId
     const existingUser = await db.user.findUnique({
-      where: { id: userId }
+      where: { clerkId: userId }
     });
 
     if (existingUser) {
@@ -30,25 +30,25 @@ export async function POST(request: NextRequest) {
 
     // Get user info from Clerk (in a real app, this would be from the webhook payload)
     const body = await request.json();
-    const { email, firstName, lastName, username } = body;
+    const { email, firstName, lastName, username, currentLevel, totalPoints } = body;
 
-    // Create the user in our database
+    // Create the user in our database with a generated ID and the clerkId
     const user = await db.user.create({
       data: {
-        id: userId,
+        clerkId: userId,
         email: email || 'user@example.com', // Fallback values for testing
         firstName: firstName || 'Test',
         lastName: lastName || 'User',
         username: username || 'testuser',
-        currentLevel: 1,
-        totalPoints: 0
+        currentLevel: currentLevel || 1,
+        totalPoints: totalPoints || 0
       }
     });
 
     // Create initial progress for level 1
     await db.userProgress.create({
       data: {
-        userId: userId,
+        userId: user.id, // Use the generated user.id, not clerkId
         levelId: 1,
         isCompleted: false,
         pointsEarned: 0,
@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
     if (firstStepsAchievement) {
       await db.userAchievement.create({
         data: {
-          userId: userId,
+          userId: user.id, // Use the generated user.id, not clerkId
           achievementId: firstStepsAchievement.id
         }
       });

@@ -33,7 +33,7 @@ async function getUserData(userId: string) {
   try {
     const user = await db.user.findUnique({
       where: {
-        id: userId
+        clerkId: userId
       },
       include: {
         progress: {
@@ -67,6 +67,7 @@ async function getUserData(userId: string) {
 
 export default async function DashboardPage() {
   const { userId } = await auth();
+ 
   
   if (!userId) {
     redirect("/sign-in");

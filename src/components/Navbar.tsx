@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { UserButton } from "@clerk/nextjs";
-import { Shield, Terminal, Trophy, Home, BarChart } from "lucide-react";
+import { Shield, Terminal, Trophy, Home, BarChart, Briefcase } from "lucide-react";
 
 export function Navbar() {
   return (
@@ -29,6 +29,10 @@ export function Navbar() {
                 <BarChart className="mr-1 h-4 w-4" />
                 Leaderboard
               </Link>
+              <Link href="/career-coach" className="inline-flex items-center px-1 pt-1 text-sm font-medium text-white hover:text-green-300">
+                <Briefcase className="mr-1 h-4 w-4" />
+                Career Coach
+              </Link>
             </div>
           </div>
           <div className="flex items-center">
@@ -46,7 +50,7 @@ export function Navbar() {
       
       {/* Mobile menu */}
       <div className="sm:hidden border-t border-green-500/10">
-        <div className="pt-2 pb-3 space-y-1 grid grid-cols-4">
+        <div className="pt-2 pb-3 space-y-1 grid grid-cols-5">
           <Link href="/dashboard" className="text-green-400 hover:text-green-300 flex flex-col items-center py-2">
             <Home className="h-5 w-5" />
             <span className="text-xs mt-1">Home</span>
@@ -62,6 +66,10 @@ export function Navbar() {
           <Link href="/leaderboard" className="text-white hover:text-green-300 flex flex-col items-center py-2">
             <BarChart className="h-5 w-5" />
             <span className="text-xs mt-1">Leaders</span>
+          </Link>
+          <Link href="/career-coach" className="text-white hover:text-green-300 flex flex-col items-center py-2">
+            <Briefcase className="h-5 w-5" />
+            <span className="text-xs mt-1">Career</span>
           </Link>
         </div>
       </div>

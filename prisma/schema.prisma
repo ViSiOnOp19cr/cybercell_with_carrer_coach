@@ -15,18 +15,23 @@ datasource db {
 
 // User model that connects with Clerk
 model User {
-  id            String          @id
-  email         String          @unique
-  username      String?
-  firstName     String?
-  lastName      String?
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
-  currentLevel  Int             @default(1)
-  totalPoints   Int             @default(0)
-  progress      UserProgress[]
-  achievements  UserAchievement[]
-  certificates  Certificate[]
+  id                String              @id @default(cuid())
+  clerkId           String              @unique
+  email             String              @unique
+  username          String?
+  firstName         String?
+  lastName          String?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  currentLevel      Int                 @default(1)
+  totalPoints       Int                 @default(0)
+  progress          UserProgress[]
+  achievements      UserAchievement[]
+  certificates      Certificate[]
+  careerProfile     CareerProfile?
+  resumes           Resume[]
+  coverLetters      CoverLetter[]
+  interviews        Interview[]
 }
 
 // Level model for the 10 cybersecurity levels
@@ -147,3 +152,55 @@ enum ActivityType {
   SIMULATION
   READING
 }
+
+// AI CAREER COACH MODELS (with prefixed names if needed)
+model CareerProfile {
+  id               String    @id @default(cuid())
+  userId           String    @unique
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  industry         String
+  subIndustry      String
+  experience       Int
+  skills           String
+  bio              String
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+}
+
+model Resume {
+  id               String    @id @default(cuid())
+  userId           String
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content          String    @db.Text
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+}
+
+model CoverLetter {
+  id               String    @id @default(cuid())
+  userId           String
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobTitle         String
+  companyName      String
+  content          String    @db.Text
+  userName         String?
+  userEmail        String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+}
+
+model Interview {
+  id               String    @id @default(cuid())
+  userId           String
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  industry         String
+  questions        Json      // Array of questions
+  answers          Json      // User answers
+  score            Int?
+  status           String    @default("pending") // pending, completed
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+}
+
+// The existing cybersecurity platform schema
+// Contains tables for users, cybersecurity challenges, progress tracking, etc.

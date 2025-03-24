@@ -4,16 +4,17 @@ import { useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { Loader2, CheckCircle, AlertCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function ProfileSetupButton() {
   const { user, isLoaded } = useUser();
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [status, setStatus] = useState<null | 'success' | 'error'>(null);
   const [message, setMessage] = useState("");
 
   const createUserProfile = async () => {
     if (!user) return;
-    console.log(user.firstName);
     setIsLoading(true);
     setStatus(null);
     setMessage("");
@@ -29,16 +30,22 @@ export default function ProfileSetupButton() {
           firstName: user.firstName,
           lastName: user.lastName,
           username: user.username,
+          clerkId: user.id,
+          currentLevel: 1,
+          totalPoints: 0
         }),
       });
 
       const data = await response.json();
+      console.log("User created:", data);
       
       if (response.ok) {
         setStatus('success');
-        setMessage("Profile created successfully! Page will refresh in 2 seconds.");
-        // Reload the page after 2 seconds
-        setTimeout(() => window.location.reload(), 2000);
+        setMessage("Profile created successfully! Redirecting to dashboard...");
+        // Use hard navigation with a longer delay to ensure server-side data is refreshed
+        setTimeout(() => {
+          window.location.href = "/dashboard";
+        }, 2000);
       } else {
         setStatus('error');
         setMessage(data.error || "Something went wrong. Please try again.");
