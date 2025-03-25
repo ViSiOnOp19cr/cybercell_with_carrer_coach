@@ -34,7 +34,7 @@ async function getLevelsWithProgress(userId: string): Promise<LevelWithUserProgr
     // Get user to determine current level
     const user = await db.user.findUnique({
       where: {
-        id: userId
+        clerkId: userId
       },
       select: {
         currentLevel: true

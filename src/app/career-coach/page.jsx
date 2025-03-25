@@ -1,7 +1,7 @@
 import React from "react";
 import Link from "next/link";
-import { Button } from "@/src/components/ui/ai-button";
-import { Card, CardContent } from "@/src/components/ui/ai-card";
+import { Button } from "../../components/ui/ai-button";
+import { Card, CardContent } from "../../components/ui/ai-card";
 import {
   ArrowRight,
   Trophy,
@@ -9,22 +9,22 @@ import {
   Sparkles,
   CheckCircle2,
 } from "lucide-react";
-import HeroSection from "@/src/components/ai-hero";
+import HeroSection from "../../components/ai-hero";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/src/components/ui/accordion";
+} from "../../components/ui/ai-accordion";
 import Image from "next/image";
-import { features } from "@/src/data/features";
-import { testimonial } from "@/src/data/testimonial";
-import { faqs } from "@/src/data/faqs";
-import { howItWorks } from "@/src/data/howItWorks";
+import { features } from "../data/features";
+import { testimonial } from "../data/testimonial";
+import { faqs } from "../data/faqs";
+import { howItWorks } from "../data/howItWorks";
 
 export default function CareerCoachLandingPage() {
   return (
-    <>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="grid-background"></div>
 
       {/* Hero Section */}
@@ -207,6 +207,6 @@ export default function CareerCoachLandingPage() {
           </div>
         </div>
       </section>
-    </>
+    </div>
   );
 } 

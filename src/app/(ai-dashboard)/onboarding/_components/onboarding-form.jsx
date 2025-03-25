@@ -12,11 +12,11 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/src/components/ui/card";
-import { Button } from "@/src/components/ui/button";
-import { Label } from "@/src/components/ui/label";
-import { Input } from "@/src/components/ui/input";
-import { Textarea } from "@/src/components/ui/textarea";
+} from "../../../../components/ui/ai-card";
+import { Button } from "../../../../components/ui/ai-button";
+import { Label } from "../../../../components/ui/ai-label";
+import { Input } from "../../../../components/ui/ai-input";
+import { Textarea } from "../../../../components/ui/ai-textarea";
 import {
   Select,
   SelectContent,
@@ -25,10 +25,10 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from "@/src/components/ui/select";
-import useFetch from "@/src/hooks/use-fetch";
-import { onboardingSchema } from "@/src/app/lib/schema";
-import { updateUser } from "@/src/actions/user";
+} from "../../../../components/ui/ai-select";
+import useFetch from "../../../../hooks/use-fetch";
+import { onboardingSchema } from "../../../../lib/schema";
+import { updateUser } from "../../../../actions/user";
 
 const OnboardingForm = ({ industries }) => {
   const router = useRouter();

@@ -10,7 +10,7 @@ export async function updateUser(data) {
   if (!userId) throw new Error("Unauthorized");
 
   const user = await db.user.findUnique({
-    where: { clerkUserId: userId },
+    where: { clerkId: userId },
   });
 
   if (!user) throw new Error("User not found");
@@ -72,7 +72,7 @@ export async function getUserOnboardingStatus() {
   if (!userId) throw new Error("Unauthorized");
 
   const user = await db.user.findUnique({
-    where: { clerkUserId: userId },
+    where: { clerkId: userId },
   });
 
   if (!user) throw new Error("User not found");
@@ -80,7 +80,7 @@ export async function getUserOnboardingStatus() {
   try {
     const user = await db.user.findUnique({
       where: {
-        clerkUserId: userId,
+        clerkId: userId,
       },
       select: {
         industry: true,

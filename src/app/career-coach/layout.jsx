@@ -1,8 +1,6 @@
-import "./globals.css";
 import { Inter } from "next/font/google";
-import { ClerkProvider } from "@clerk/nextjs";
 import { Toaster } from "sonner";
-import { ThemeProvider } from "@/src/components/theme-provider";
+import { Navbar } from "@/components/Navbar";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -11,22 +9,21 @@ export const metadata = {
   description: "Advance your career with personalized AI guidance",
 };
 
-export default function RootLayout({ children }) {
+export default function CareerCoachLayout({ children }) {
   return (
-    <ClerkProvider>
-      <html lang="en" suppressHydrationWarning>
-        <body className={inter.className}>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            <main>{children}</main>
-            <Toaster position="top-center" richColors />
-          </ThemeProvider>
-        </body>
-      </html>
-    </ClerkProvider>
+    <div className={`min-h-screen flex flex-col ${inter.className}`}>
+      <Navbar />
+      <main className="flex-1 pt-20 pb-10">
+        {children}
+        <Toaster position="top-center" richColors />
+      </main>
+      <footer className="bg-black/50 backdrop-blur-sm py-4 border-t border-green-500/20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <p className="text-center text-sm text-gray-400">
+            &copy; {new Date().getFullYear()} CyberQuest. All rights reserved.
+          </p>
+        </div>
+      </footer>
+    </div>
   );
 } 

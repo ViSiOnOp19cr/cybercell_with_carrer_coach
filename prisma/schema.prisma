@@ -21,10 +21,20 @@ model User {
   username          String?
   firstName         String?
   lastName          String?
+  imageUrl          String?             // Added from career coach
+  industry          String?             // Added from career coach
+  industryInsight   IndustryInsight?    @relation(fields: [industry], references: [industry]) // Added from career coach
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
   currentLevel      Int                 @default(1)
   totalPoints       Int                 @default(0)
+  
+  // Profile fields from career coach
+  bio               String?             // Added from career coach
+  experience        Int?                // Added from career coach
+  skills            String[]            // Added from career coach
+  
+  // Existing relations
   progress          UserProgress[]
   achievements      UserAchievement[]
   certificates      Certificate[]
@@ -32,6 +42,7 @@ model User {
   resumes           Resume[]
   coverLetters      CoverLetter[]
   interviews        Interview[]
+  assessments       Assessment[]        // Added from career coach
 }
 
 // Level model for the 10 cybersecurity levels
@@ -200,6 +211,30 @@ model Interview {
   status           String    @default("pending") // pending, completed
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
+}
+
+// Added IndustryInsight model from career coach
+model IndustryInsight {
+  industry         String    @id
+  description      String
+  trends           String[]
+  skills           String[]
+  salaryRange      String?
+  growthRate       Float?
+  users            User[]
+}
+
+// Added Assessment model from career coach
+model Assessment {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id])
+  type            String    // e.g., "technical", "soft-skills", "personality"
+  score           Int
+  feedback        String
+  recommendations String[]
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 }
 
 // The existing cybersecurity platform schema

@@ -34,7 +34,7 @@ async function getUserData(userId: string) {
   try {
     const user = await db.user.findUnique({
       where: {
-        id: userId
+        clerkId: userId
       },
       include: {
         progress: {

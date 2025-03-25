@@ -1,14 +1,14 @@
 import { redirect } from "next/navigation";
-import { industries } from "@/src/data/industries";
+import { industries } from "../../data/industries";
 import OnboardingForm from "./_components/onboarding-form";
-import { getUserOnboardingStatus } from "@/src/actions/user";
+import { getUserOnboardingStatus } from "../../../actions/user";
 
 export default async function OnboardingPage() {
   // Check if user is already onboarded
   const { isOnboarded } = await getUserOnboardingStatus();
 
   if (isOnboarded) {
-    redirect("/dashboard");
+    redirect("/career-coach/ai-dashboard");
   }
 
   return (

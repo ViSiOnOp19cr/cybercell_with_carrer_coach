@@ -15,7 +15,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/src/components/ui/card";
+} from "@/src/components/ui/ai-card";
 import { useEffect, useState } from "react";
 import { format } from "date-fns";
 
