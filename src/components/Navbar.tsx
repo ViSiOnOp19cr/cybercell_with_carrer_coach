@@ -100,76 +100,80 @@ export function Navbar() {
                 </Button>
               </Link>
 
-              <div className="flex items-center space-x-2 md:space-x-4">
-                <SignedIn>
-                  {/* Growth Tools Dropdown */}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="hidden md:inline-flex items-center gap-2"
-                      >
-                        <StarsIcon className="h-4 w-4" />
-                        <span>Growth Tools</span>
-                        <ChevronDown className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent
-                      align="end"
-                      className="w-48 bg-black/50 backdrop-blur-lg border border-green-500/20"
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Link
+                    href="#"
+                    className="inline-flex items-center px-1 pt-1 text-sm font-medium text-white hover:text-green-300"
+                  >
+                    <Button
+                      variant="outline"
+                      className="hidden md:inline-flex items-center gap-2"
                     >
-                      <DropdownMenuItem asChild>
-                        <Link
-                          href="/resume"
-                          className="flex items-center gap-2 text-white hover:text-green-300"
-                        >
-                          <FileText className="h-4 w-4" />
-                          Build Resume
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link
-                          href="/ai-cover-letter"
-                          className="flex items-center gap-2 text-white hover:text-green-300"
-                        >
-                          <PenBox className="h-4 w-4" />
-                          Cover Letter
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link
-                          href="/interview"
-                          className="flex items-center gap-2 text-white hover:text-green-300"
-                        >
-                          <GraduationCap className="h-4 w-4" />
-                          Interview Prep
-                        </Link>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </SignedIn>
-              </div>
+                      <StarsIcon className="h-4 w-4" />
+                      Growth Tools
+                      <ChevronDown className="h-4 w-4" />
+                    </Button>
+                  </Link>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="end"
+                  className="w-48 bg-black/50 backdrop-blur-lg border border-green-500/20"
+                >
+                  <DropdownMenuItem asChild>
+                    <Link
+                      href="/resume"
+                      className="flex items-center gap-2 text-white hover:text-green-300"
+                    >
+                      <FileText className="h-4 w-4" />
+                      Build Resume
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link
+                      href="/ai-cover-letter"
+                      className="flex items-center gap-2 text-white hover:text-green-300"
+                    >
+                      <PenBox className="h-4 w-4" />
+                      Cover Letter
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link
+                      href="/interview"
+                      className="flex items-center gap-2 text-white hover:text-green-300"
+                    >
+                      <GraduationCap className="h-4 w-4" />
+                      Interview Prep
+                    </Link>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
 
           <div className="flex items-center">
             <Link
               href="/profile"
-              className="mr-4 text-white hover:text-green-300"
+              className="inline-flex items-center px-1 pt-1 text-sm font-medium text-white hover:text-green-300"
             >
-              <div className="flex items-center">
-                <span className="hidden md:inline mr-1">
-                  <Button
-                    variant="outline"
-                    className="hidden md:inline-flex items-center gap-2"
-                  >
-                    Profile
-                  </Button>
-                </span>
-              </div>
+              <Button
+                variant="outline"
+                className="hidden md:inline-flex items-center gap-2"
+              >
+                Profile
+              </Button>
             </Link>
-            <div className="flex-shrink-0">
-              <UserButton afterSignOutUrl="/" />
+            <div className="inline-flex items-center px-1 pt-1">
+              <UserButton
+                appearance={{
+                  elements: {
+                    avatarBox: "h-9 w-9",
+                    userButtonAvatarBox: "w-9 h-9",
+                  },
+                }}
+                afterSignOutUrl="/"
+              />
             </div>
           </div>
         </div>
