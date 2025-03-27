@@ -1,34 +1,29 @@
-"use client";
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { Check, AlertCircle } from 'lucide-react';
+import Image from 'next/image';
 
-import React, { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
-import { Check, ChevronLeft, ChevronRight, AlertCircle, CheckCircle, Info } from "lucide-react";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
-import Image from "next/image";
-import { motion } from "framer-motion";
-
-interface ScenarioSolution {
+interface OfficeObject {
   id: string;
-  text: string;
-  correct: boolean;
+  name: string;
+  type: 'computer' | 'document' | 'door' | 'cabinet' | 'printer' | 'window';
+  position: { x: number; y: number };
+  securityIssues: SecurityIssue[];
+  isInteractable: boolean;
+  image: string;
 }
 
-interface Scenario {
+interface SecurityIssue {
   id: string;
-  title: string;
+  type: 'confidentiality' | 'integrity' | 'availability';
   description: string;
-  image: string;
-  question: string;
-  options: string[];
-  correctAnswer: string | string[];
-  explanation: string;
-  solutions: ScenarioSolution[];
+  impact: string;
+  solution: string;
+  isFixed: boolean;
 }
 
 interface SecurityDetectiveLabProps {
@@ -41,150 +36,165 @@ export default function SecurityDetectiveLab({ activity, userId, progress }: Sec
   const router = useRouter();
   const [isCompleted, setIsCompleted] = useState(progress?.isCompleted || false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [currentScenarioIndex, setCurrentScenarioIndex] = useState(0);
-  const [userAnswers, setUserAnswers] = useState<Record<string, string | string[]>>({});
-  const [selectedSolutions, setSelectedSolutions] = useState<Record<string, string>>({});
-  const [showResults, setShowResults] = useState<Record<string, boolean>>({});
+  const [activeTab, setActiveTab] = useState("instructions");
+  const [selectedObject, setSelectedObject] = useState<OfficeObject | null>(null);
   const [securityScore, setSecurityScore] = useState(0);
-  const [scenariosCompleted, setScenariosCompleted] = useState(0);
+  const [issuesFixed, setIssuesFixed] = useState(0);
+  const [totalIssues, setTotalIssues] = useState(0);
+  const [showSolution, setShowSolution] = useState(false);
+  const [inventory, setInventory] = useState<string[]>([]);
   
   // Parse content
   const content = typeof activity.content === 'string'
     ? JSON.parse(activity.content)
     : activity.content;
   
-  const scenarios: Scenario[] = content.scenarios || [];
-  const currentScenario = scenarios[currentScenarioIndex];
-  
+  // Initialize office objects with security issues
+  const [officeObjects, setOfficeObjects] = useState<OfficeObject[]>([
+    {
+      id: "computer1",
+      name: "Employee Workstation",
+      type: "computer",
+      position: { x: 100, y: 100 },
+      image: "/images/labs/level1/computer.svg",
+      isInteractable: true,
+      securityIssues: [
+        {
+          id: "issue1",
+          type: "confidentiality",
+          description: "Computer is left unlocked with sensitive data visible",
+          impact: "Unauthorized access to sensitive information",
+          solution: "Implement automatic screen locking after inactivity",
+          isFixed: false
+        }
+      ]
+    },
+    {
+      id: "document1",
+      name: "Confidential Report",
+      type: "document",
+      position: { x: 200, y: 150 },
+      image: "/images/labs/level1/document.svg",
+      isInteractable: true,
+      securityIssues: [
+        {
+          id: "issue2",
+          type: "integrity",
+          description: "Document is not properly secured and can be modified",
+          impact: "Unauthorized modifications to sensitive data",
+          solution: "Implement document version control and access restrictions",
+          isFixed: false
+        }
+      ]
+    },
+    {
+      id: "cabinet1",
+      name: "Filing Cabinet",
+      type: "cabinet",
+      position: { x: 300, y: 200 },
+      image: "/images/labs/level1/cabinet.svg",
+      isInteractable: true,
+      securityIssues: [
+        {
+          id: "issue3",
+          type: "confidentiality",
+          description: "Physical documents are not properly secured",
+          impact: "Unauthorized physical access to sensitive documents",
+          solution: "Implement physical security controls and access logs",
+          isFixed: false
+        }
+      ]
+    },
+    {
+      id: "printer1",
+      name: "Network Printer",
+      type: "printer",
+      position: { x: 400, y: 250 },
+      image: "/images/labs/level1/printer.svg",
+      isInteractable: true,
+      securityIssues: [
+        {
+          id: "issue4",
+          type: "availability",
+          description: "Printer lacks proper security controls",
+          impact: "Potential for denial of service attacks",
+          solution: "Implement printer access controls and monitoring",
+          isFixed: false
+        }
+      ]
+    }
+  ]);
+
   useEffect(() => {
-    // Initialize state from progress if available
+    // Calculate total issues
+    const total = officeObjects.reduce((sum, obj) => sum + obj.securityIssues.length, 0);
+    setTotalIssues(total);
+
+    // Load progress if available
     if (progress?.answers) {
       try {
         const savedAnswers = typeof progress.answers === 'string'
           ? JSON.parse(progress.answers)
           : progress.answers;
         
-        if (savedAnswers.userAnswers) {
-          setUserAnswers(savedAnswers.userAnswers);
+        if (savedAnswers.fixedIssues) {
+          const updatedObjects = officeObjects.map(obj => ({
+            ...obj,
+            securityIssues: obj.securityIssues.map(issue => ({
+              ...issue,
+              isFixed: savedAnswers.fixedIssues.includes(issue.id)
+            }))
+          }));
+          setOfficeObjects(updatedObjects);
+          
+          // Update issues fixed count
+          const fixed = updatedObjects.reduce((sum, obj) => 
+            sum + obj.securityIssues.filter(issue => issue.isFixed).length, 0);
+          setIssuesFixed(fixed);
         }
-        
-        if (savedAnswers.selectedSolutions) {
-          setSelectedSolutions(savedAnswers.selectedSolutions);
-        }
-        
-        // Calculate scenarios completed
-        const completedCount = Object.keys(savedAnswers.userAnswers || {}).length;
-        setScenariosCompleted(completedCount);
-        
-        // Calculate security score
-        calculateSecurityScore(savedAnswers.userAnswers || {});
       } catch (error) {
         console.error("Error parsing saved answers:", error);
       }
     }
   }, [progress]);
-  
-  const calculateSecurityScore = (answers: Record<string, string | string[]>) => {
-    let correctCount = 0;
+
+  const handleObjectClick = (object: OfficeObject) => {
+    setSelectedObject(object);
+    setShowSolution(false);
+  };
+
+  const handleFixIssue = (issueId: string) => {
+    const updatedObjects = officeObjects.map(obj => ({
+      ...obj,
+      securityIssues: obj.securityIssues.map(issue => 
+        issue.id === issueId ? { ...issue, isFixed: true } : issue
+      )
+    }));
     
-    scenarios.forEach(scenario => {
-      const userAnswer = answers[scenario.id];
-      
-      if (Array.isArray(scenario.correctAnswer) && Array.isArray(userAnswer)) {
-        // For multi-select questions, check if arrays match (regardless of order)
-        const isCorrect = scenario.correctAnswer.length === userAnswer.length &&
-          scenario.correctAnswer.every(answer => userAnswer.includes(answer));
-        
-        if (isCorrect) correctCount++;
-      } else if (!Array.isArray(scenario.correctAnswer) && !Array.isArray(userAnswer)) {
-        // For single select questions
-        if (userAnswer === scenario.correctAnswer) correctCount++;
-      }
-    });
+    setOfficeObjects(updatedObjects);
     
-    const score = Math.round((correctCount / scenarios.length) * 100);
+    // Update issues fixed count
+    const fixed = updatedObjects.reduce((sum, obj) => 
+      sum + obj.securityIssues.filter(issue => issue.isFixed).length, 0);
+    setIssuesFixed(fixed);
+    
+    // Calculate security score
+    const score = Math.round((fixed / totalIssues) * 100);
     setSecurityScore(score);
-    return score;
   };
-  
-  const handleNext = () => {
-    if (currentScenarioIndex < scenarios.length - 1) {
-      setCurrentScenarioIndex(currentScenarioIndex + 1);
-    }
-  };
-  
-  const handlePrevious = () => {
-    if (currentScenarioIndex > 0) {
-      setCurrentScenarioIndex(currentScenarioIndex - 1);
-    }
-  };
-  
-  const handleSelectOption = (scenarioId: string, option: string) => {
-    // Check if the current scenario allows multiple answers
-    const scenario = scenarios.find(s => s.id === scenarioId);
-    const isMultiSelect = Array.isArray(scenario?.correctAnswer);
-    
-    if (isMultiSelect) {
-      // Handle multi-select
-      const currentSelections = Array.isArray(userAnswers[scenarioId]) 
-        ? [...userAnswers[scenarioId] as string[]] 
-        : [];
-      
-      if (currentSelections.includes(option)) {
-        // If already selected, remove it
-        setUserAnswers({
-          ...userAnswers,
-          [scenarioId]: currentSelections.filter(item => item !== option)
-        });
-      } else {
-        // If not selected, add it
-        setUserAnswers({
-          ...userAnswers,
-          [scenarioId]: [...currentSelections, option]
-        });
-      }
-    } else {
-      // Handle single-select
-      setUserAnswers({
-        ...userAnswers,
-        [scenarioId]: option
-      });
-    }
-    
-    // If this is a newly answered scenario, increment the count
-    if (!userAnswers[scenarioId]) {
-      setScenariosCompleted(prev => prev + 1);
-    }
-  };
-  
-  const handleSelectSolution = (scenarioId: string, solutionId: string) => {
-    setSelectedSolutions({
-      ...selectedSolutions,
-      [scenarioId]: solutionId
-    });
-  };
-  
-  const handleCheckAnswer = (scenarioId: string) => {
-    setShowResults({
-      ...showResults,
-      [scenarioId]: true
-    });
-    
-    // Calculate security score when checking an answer
-    calculateSecurityScore(userAnswers);
-  };
-  
+
   const handleSubmit = async () => {
     try {
       setIsSubmitting(true);
       
-      const finalScore = calculateSecurityScore(userAnswers);
-      const pointsEarned = Math.round((finalScore / 100) * activity.points);
-      
       // Prepare answers object to save
+      const fixedIssues = officeObjects.flatMap(obj => 
+        obj.securityIssues.filter(issue => issue.isFixed).map(issue => issue.id)
+      );
+      
       const answersToSave = {
-        userAnswers,
-        selectedSolutions,
+        fixedIssues,
+        securityScore
       };
       
       // Update activity progress in the database
@@ -195,8 +205,8 @@ export default function SecurityDetectiveLab({ activity, userId, progress }: Sec
         },
         body: JSON.stringify({
           isCompleted: true,
-          score: finalScore,
-          pointsEarned,
+          score: securityScore,
+          pointsEarned: Math.round((securityScore / 100) * activity.points),
           answers: answersToSave
         }),
       });
@@ -206,8 +216,6 @@ export default function SecurityDetectiveLab({ activity, userId, progress }: Sec
       }
       
       setIsCompleted(true);
-      
-      // Refresh the page data
       router.refresh();
     } catch (error) {
       console.error("Error submitting lab:", error);
@@ -215,50 +223,13 @@ export default function SecurityDetectiveLab({ activity, userId, progress }: Sec
       setIsSubmitting(false);
     }
   };
-  
-  // Add new function to reset the lab state for reattempt
-  const handleReattempt = async () => {
-    try {
-      // Reset the progress on the server
-      const response = await fetch(`/api/activities/${activity.id}/progress`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          isCompleted: false,
-          score: 0,
-          pointsEarned: 0,
-          answers: {}
-        }),
-      });
-      
-      if (!response.ok) {
-        throw new Error("Failed to reset progress");
-      }
-      
-      // Reset all state to initial values
-      setUserAnswers({});
-      setSelectedSolutions({});
-      setShowResults({});
-      setScenariosCompleted(0);
-      setSecurityScore(0);
-      setCurrentScenarioIndex(0);
-      setIsCompleted(false);
-      
-      // Refresh the page data
-      router.refresh();
-    } catch (error) {
-      console.error("Error resetting lab:", error);
-    }
-  };
-  
+
   // If already completed, show the completion summary
   if (isCompleted) {
     return (
       <div className="text-center py-6 space-y-6">
         <div className="mb-4">
-          <CheckCircle className="h-16 w-16 text-green-500 mx-auto" />
+          <Check className="h-16 w-16 text-green-500 mx-auto" />
         </div>
         
         <h2 className="text-2xl font-bold mb-2 text-white">Investigation Complete!</h2>
@@ -275,15 +246,12 @@ export default function SecurityDetectiveLab({ activity, userId, progress }: Sec
               {securityScore}%
             </span>
           </div>
-          <p className="text-sm text-gray-400">Correctly identified {Math.round((securityScore / 100) * scenarios.length)} of {scenarios.length} security issues</p>
+          <p className="text-sm text-gray-400">Fixed {issuesFixed} of {totalIssues} security issues</p>
         </div>
         
         <div className="flex justify-center space-x-4">
           <Button variant="outline" onClick={() => setIsCompleted(false)}>
             Review Investigation
-          </Button>
-          <Button variant="secondary" onClick={handleReattempt}>
-            Reattempt Lab
           </Button>
           <Button asChild>
             <a href={`/levels/${activity.levelId}`}>
@@ -294,246 +262,195 @@ export default function SecurityDetectiveLab({ activity, userId, progress }: Sec
       </div>
     );
   }
-  
+
   return (
     <div className="space-y-6">
-      {/* Progress Bar */}
-      <div className="mb-6">
-        <div className="flex justify-between items-center mb-2">
-          <span className="text-sm text-gray-400">Security Investigation Progress</span>
-          <span className="text-sm font-medium text-white">{scenariosCompleted} of {scenarios.length} scenarios analyzed</span>
-        </div>
-        <Progress value={(scenariosCompleted / scenarios.length) * 100} className="h-2" />
-      </div>
-      
-      {/* Scenario Card */}
-      <div className="grid md:grid-cols-3 gap-6">
-        {/* Scenario Image */}
-        <div className="md:col-span-1">
-          <Card className="h-full bg-black/20 border-blue-500/20 overflow-hidden">
-            <div className="relative h-48 md:h-full min-h-[200px] bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center">
-              {currentScenario.image ? (
-                <div className="relative h-full w-full">
-                  <Image 
-                    src={currentScenario.image}
-                    alt={currentScenario.title}
-                    fill
-                    style={{ objectFit: 'contain' }}
-                    className="p-4"
-                  />
-                </div>
-              ) : (
-                <Info className="h-16 w-16 text-blue-500/50" />
-              )}
-            </div>
-            <CardFooter className="p-3">
-              <div className="flex items-center justify-between w-full">
-                <Badge variant="outline" className="bg-blue-950/30">
-                  Scenario {currentScenarioIndex + 1}/{scenarios.length}
-                </Badge>
-                {userAnswers[currentScenario.id] && (
-                  <Badge 
-                    className={
-                      showResults[currentScenario.id] 
-                        ? (
-                          Array.isArray(currentScenario.correctAnswer)
-                            ? JSON.stringify(userAnswers[currentScenario.id]) === JSON.stringify(currentScenario.correctAnswer)
-                              ? "bg-green-900/30 text-green-300 hover:bg-green-900/30"
-                              : "bg-red-900/30 text-red-300 hover:bg-red-900/30"
-                            : userAnswers[currentScenario.id] === currentScenario.correctAnswer
-                              ? "bg-green-900/30 text-green-300 hover:bg-green-900/30"
-                              : "bg-red-900/30 text-red-300 hover:bg-red-900/30"
-                        )
-                        : "bg-blue-900/30 text-blue-300 hover:bg-blue-900/30"
-                    }
-                  >
-                    {showResults[currentScenario.id] 
-                      ? (
-                        Array.isArray(currentScenario.correctAnswer)
-                          ? JSON.stringify(userAnswers[currentScenario.id]) === JSON.stringify(currentScenario.correctAnswer)
-                            ? "Correct"
-                            : "Incorrect"
-                          : userAnswers[currentScenario.id] === currentScenario.correctAnswer
-                            ? "Correct"
-                            : "Incorrect"
-                      )
-                      : "Answered"
-                    }
-                  </Badge>
-                )}
-              </div>
-            </CardFooter>
-          </Card>
-        </div>
+      <Tabs defaultValue="instructions" value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid grid-cols-3 mb-6">
+          <TabsTrigger value="instructions">Instructions</TabsTrigger>
+          <TabsTrigger value="lab">Lab Environment</TabsTrigger>
+          <TabsTrigger value="resources">Resources</TabsTrigger>
+        </TabsList>
         
-        {/* Scenario Content */}
-        <Card className="md:col-span-2 h-full bg-black/20 border-blue-500/20">
-          <CardHeader>
-            <CardTitle className="text-xl text-white">{currentScenario.title}</CardTitle>
-            <CardDescription className="text-gray-300">
-              {currentScenario.description}
-            </CardDescription>
-          </CardHeader>
-          
-          <CardContent className="space-y-6">
-            <div>
-              <h4 className="text-md font-medium mb-3 text-white">{currentScenario.question}</h4>
-              
-              {/* Single select or multi-select based on scenario */}
-              {Array.isArray(currentScenario.correctAnswer) ? (
-                <div className="space-y-3">
-                  {currentScenario.options.map((option) => (
-                    <div key={option} className="flex items-start space-x-2">
-                      <Checkbox
-                        id={`${currentScenario.id}-${option}`}
-                        checked={Array.isArray(userAnswers[currentScenario.id]) && 
-                          (userAnswers[currentScenario.id] as string[]).includes(option)}
-                        onCheckedChange={() => handleSelectOption(currentScenario.id, option)}
-                        disabled={showResults[currentScenario.id]}
-                        className="mt-1"
-                      />
-                      <Label
-                        htmlFor={`${currentScenario.id}-${option}`}
-                        className="text-white cursor-pointer"
-                      >
-                        {option}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <RadioGroup
-                  value={userAnswers[currentScenario.id] as string}
-                  onValueChange={(value) => handleSelectOption(currentScenario.id, value)}
-                  disabled={showResults[currentScenario.id]}
+        <TabsContent value="instructions" className="space-y-4">
+          <div className="prose prose-invert max-w-none mb-6 text-white">
+            <h2 className="text-2xl font-bold text-white">Security Detective: CIA Triad in Action</h2>
+            <p className="text-white">
+              Welcome to the Security Detective lab! In this interactive simulation, you'll explore a virtual office environment
+              to identify and fix security issues related to the CIA triad (Confidentiality, Integrity, and Availability).
+            </p>
+            <h3 className="text-xl font-semibold text-white mt-4">Objectives</h3>
+            <ul className="list-disc pl-5 text-white">
+              <li>Explore the virtual office environment to identify security issues</li>
+              <li>Classify security issues according to the CIA triad</li>
+              <li>Implement appropriate security controls to fix the issues</li>
+              <li>Understand the impact of security decisions on the organization</li>
+            </ul>
+            <p className="text-white mt-4">
+              Click on different objects in the office to investigate security issues. For each issue you find:
+            </p>
+            <ol className="list-decimal pl-5 text-white">
+              <li>Identify the type of security issue (Confidentiality, Integrity, or Availability)</li>
+              <li>Understand the potential impact of the issue</li>
+              <li>Choose and implement an appropriate solution</li>
+              <li>Verify that the security control is effective</li>
+            </ol>
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="lab" className="space-y-4">
+          <div className="relative h-[600px] bg-black/30 rounded-lg border border-blue-500/20 overflow-hidden">
+            {/* Office Environment */}
+            <div className="absolute inset-0 bg-gradient-to-br from-slate-900 to-slate-800">
+              {officeObjects.map((obj) => (
+                <div
+                  key={obj.id}
+                  className="absolute cursor-pointer transition-transform hover:scale-105"
+                  style={{ left: obj.position.x, top: obj.position.y }}
+                  onClick={() => handleObjectClick(obj)}
                 >
-                  {currentScenario.options.map((option) => (
-                    <div key={option} className="flex items-center space-x-2">
-                      <RadioGroupItem 
-                        value={option} 
-                        id={`${currentScenario.id}-${option}`} 
-                        disabled={showResults[currentScenario.id]}
-                      />
-                      <Label
-                        htmlFor={`${currentScenario.id}-${option}`}
-                        className="text-white cursor-pointer"
-                      >
-                        {option}
-                      </Label>
-                    </div>
-                  ))}
-                </RadioGroup>
-              )}
+                  <div className="relative w-24 h-24">
+                    <Image
+                      src={obj.image}
+                      alt={obj.name}
+                      fill
+                      style={{ objectFit: 'contain' }}
+                    />
+                    {obj.securityIssues.some(issue => !issue.isFixed) && (
+                      <div className="absolute -top-2 -right-2 w-4 h-4 bg-red-500 rounded-full animate-pulse" />
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
             
-            {/* Explanation (shown after checking answer) */}
-            {showResults[currentScenario.id] && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-                className="bg-black/30 p-4 rounded-lg border border-blue-500/20"
-              >
-                <h4 className="flex items-center text-md font-medium mb-2 text-white">
-                  <Info className="h-4 w-4 mr-2 text-blue-400" />
-                  Explanation
-                </h4>
-                <p className="text-gray-300">{currentScenario.explanation}</p>
-                
-                <div className="mt-4">
-                  <h5 className="text-sm font-medium mb-2 text-white">Select the best solution:</h5>
-                  <div className="space-y-2">
-                    {currentScenario.solutions.map((solution) => (
-                      <div 
-                        key={solution.id}
-                        className={`p-3 rounded-lg border cursor-pointer transition-colors ${
-                          selectedSolutions[currentScenario.id] === solution.id
-                            ? solution.correct 
-                              ? "bg-green-900/30 border-green-500"
-                              : "bg-red-900/30 border-red-500"
-                            : selectedSolutions[currentScenario.id] && solution.correct
-                              ? "bg-green-900/30 border-green-500"
-                              : "bg-transparent border-gray-700 hover:border-blue-500/50"
+            {/* Selected Object Details */}
+            {selectedObject && (
+              <div className="absolute inset-0 bg-black/80 flex items-center justify-center">
+                <Card className="w-[600px] bg-black/30 border-blue-500/20">
+                  <CardHeader>
+                    <CardTitle className="text-xl text-white">{selectedObject.name}</CardTitle>
+                    <CardDescription className="text-gray-300">
+                      {selectedObject.type.charAt(0).toUpperCase() + selectedObject.type.slice(1)}
+                    </CardDescription>
+                  </CardHeader>
+                  
+                  <CardContent className="space-y-4">
+                    {selectedObject.securityIssues.map((issue) => (
+                      <div
+                        key={issue.id}
+                        className={`p-4 rounded-lg border ${
+                          issue.isFixed
+                            ? "bg-green-900/30 border-green-500"
+                            : "bg-red-900/30 border-red-500"
                         }`}
-                        onClick={() => handleSelectSolution(currentScenario.id, solution.id)}
                       >
-                        <div className="flex justify-between items-center">
-                          <p className="text-white">{solution.text}</p>
-                          {selectedSolutions[currentScenario.id] === solution.id && (
-                            <Check className={`h-4 w-4 ${solution.correct ? "text-green-400" : "text-red-400"}`} />
-                          )}
-                          {selectedSolutions[currentScenario.id] && solution.correct && selectedSolutions[currentScenario.id] !== solution.id && (
+                        <div className="flex justify-between items-start mb-2">
+                          <h4 className="text-white font-medium">
+                            {issue.type.charAt(0).toUpperCase() + issue.type.slice(1)} Issue
+                          </h4>
+                          {issue.isFixed ? (
                             <Check className="h-4 w-4 text-green-400" />
+                          ) : (
+                            <AlertCircle className="h-4 w-4 text-red-400" />
                           )}
                         </div>
-                        {selectedSolutions[currentScenario.id] === solution.id && !solution.correct && (
-                          <p className="text-red-300 text-sm mt-2">This is not the best solution.</p>
-                        )}
-                        {selectedSolutions[currentScenario.id] && solution.correct && selectedSolutions[currentScenario.id] !== solution.id && (
-                          <p className="text-green-300 text-sm mt-2">This would be the best solution.</p>
-                        )}
-                        {selectedSolutions[currentScenario.id] === solution.id && solution.correct && (
-                          <p className="text-green-300 text-sm mt-2">Correct! This is the best solution.</p>
+                        
+                        <p className="text-gray-300 mb-2">{issue.description}</p>
+                        
+                        <div className="bg-black/30 p-3 rounded-md mb-2">
+                          <p className="text-sm text-gray-400">Impact:</p>
+                          <p className="text-white">{issue.impact}</p>
+                        </div>
+                        
+                        {!issue.isFixed && (
+                          <div className="space-y-2">
+                            <p className="text-sm text-gray-400">Solution:</p>
+                            <p className="text-white">{issue.solution}</p>
+                            <Button
+                              size="sm"
+                              onClick={() => handleFixIssue(issue.id)}
+                              className="mt-2"
+                            >
+                              Implement Solution
+                            </Button>
+                          </div>
                         )}
                       </div>
                     ))}
-                  </div>
-                </div>
-              </motion.div>
+                  </CardContent>
+                  
+                  <CardFooter>
+                    <Button
+                      variant="outline"
+                      onClick={() => setSelectedObject(null)}
+                    >
+                      Close
+                    </Button>
+                  </CardFooter>
+                </Card>
+              </div>
             )}
-          </CardContent>
+          </div>
           
-          <CardFooter className="flex justify-between">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handlePrevious}
-              disabled={currentScenarioIndex === 0}
-            >
-              <ChevronLeft className="h-4 w-4 mr-1" /> Previous
-            </Button>
-            
-            <div className="flex flex-col items-end">
-              {showResults[currentScenario.id] && !selectedSolutions[currentScenario.id] && (
-                <p className="text-amber-400 text-xs mb-2">Please select a solution before proceeding</p>
-              )}
-              
-              {showResults[currentScenario.id] ? (
-                <Button
-                  size="sm"
-                  onClick={handleNext}
-                  disabled={currentScenarioIndex === scenarios.length - 1 || !selectedSolutions[currentScenario.id]}
-                >
-                  Next <ChevronRight className="h-4 w-4 ml-1" />
-                </Button>
-              ) : (
-                <Button
-                  size="sm"
-                  onClick={() => handleCheckAnswer(currentScenario.id)}
-                  disabled={!userAnswers[currentScenario.id]}
-                >
-                  Check Answer
-                </Button>
-              )}
+          {/* Progress Bar */}
+          <div className="mt-4">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-sm text-gray-400">Security Issues Fixed</span>
+              <span className="text-sm font-medium text-white">{issuesFixed} of {totalIssues}</span>
             </div>
-          </CardFooter>
-        </Card>
-      </div>
-      
-      {/* Submit Button */}
-      <div className="pt-6 flex justify-center">
-        <Button
-          onClick={handleSubmit}
-          disabled={
-            isSubmitting || 
-            Object.keys(userAnswers).length < scenarios.length || 
-            !Object.keys(userAnswers).every(key => showResults[key])
-          }
-          className="px-6"
-        >
-          {isSubmitting ? "Submitting..." : "Complete Investigation"}
-        </Button>
-      </div>
+            <Progress value={(issuesFixed / totalIssues) * 100} className="h-2" />
+          </div>
+          
+          {/* Submit Button */}
+          <div className="flex justify-center mt-6">
+            <Button
+              onClick={handleSubmit}
+              disabled={isSubmitting || issuesFixed < totalIssues}
+              className="px-6"
+            >
+              {isSubmitting ? "Submitting..." : "Complete Investigation"}
+            </Button>
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="resources" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Resources</CardTitle>
+              <CardDescription>Helpful information for the Security Detective lab</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="prose prose-invert max-w-none">
+                <h3>CIA Triad Overview</h3>
+                <ul>
+                  <li><strong>Confidentiality:</strong> Ensuring that information is only accessible to authorized users</li>
+                  <li><strong>Integrity:</strong> Maintaining the accuracy and trustworthiness of data</li>
+                  <li><strong>Availability:</strong> Ensuring that systems and data are accessible when needed</li>
+                </ul>
+                
+                <h3>Common Security Controls</h3>
+                <ul>
+                  <li>Access controls and authentication</li>
+                  <li>Encryption and data protection</li>
+                  <li>Backup and recovery procedures</li>
+                  <li>Physical security measures</li>
+                  <li>Network security controls</li>
+                </ul>
+                
+                <h3>Best Practices</h3>
+                <ul>
+                  <li>Implement the principle of least privilege</li>
+                  <li>Regular security assessments</li>
+                  <li>Employee security awareness training</li>
+                  <li>Incident response planning</li>
+                  <li>Regular updates and patches</li>
+                </ul>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 } 

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { format } from "date-fns";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Button } from "@/src/components/ui/button";
+import { Button } from "../../../../components/ui/ai-button";
 import {
   Card,
   CardContent,
@@ -12,7 +12,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/src/components/ui/card";
+} from "../../../../components/ui/ai-card";
 import {
   Dialog,
   DialogContent,
@@ -20,7 +20,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from "@/src/components/ui/dialog";
+} from "../../../../components/ui/ai-dialog";
 import QuizResult from "./quiz-result";
 
 export default function QuizList({ assessments }) {
@@ -58,7 +58,7 @@ export default function QuizList({ assessments }) {
                     Quiz {i + 1}
                   </CardTitle>
                   <CardDescription className="flex justify-between w-full">
-                    <div>Score: {assessment.quizScore.toFixed(1)}%</div>
+                    <div>Score: {assessment.score.toFixed(1)}%</div>
                     <div>
                       {format(
                         new Date(assessment.createdAt),
@@ -67,10 +67,10 @@ export default function QuizList({ assessments }) {
                     </div>
                   </CardDescription>
                 </CardHeader>
-                {assessment.improvementTip && (
+                {assessment.feedback && (
                   <CardContent>
                     <p className="text-sm text-muted-foreground">
-                      {assessment.improvementTip}
+                      {assessment.feedback}
                     </p>
                   </CardContent>
                 )}

@@ -1,6 +1,6 @@
 "use server";
 
-import { db } from "@/lib/prisma";
+import { db } from "../lib/db";
 import { auth } from "@clerk/nextjs/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
@@ -12,7 +12,7 @@ export async function generateCoverLetter(data) {
   if (!userId) throw new Error("Unauthorized");
 
   const user = await db.user.findUnique({
-    where: { clerkUserId: userId },
+    where: { clerkId: userId },
   });
 
   if (!user) throw new Error("User not found");
@@ -50,10 +50,8 @@ export async function generateCoverLetter(data) {
     const coverLetter = await db.coverLetter.create({
       data: {
         content,
-        jobDescription: data.jobDescription,
         companyName: data.companyName,
         jobTitle: data.jobTitle,
-        status: "completed",
         userId: user.id,
       },
     });
@@ -70,7 +68,7 @@ export async function getCoverLetters() {
   if (!userId) throw new Error("Unauthorized");
 
   const user = await db.user.findUnique({
-    where: { clerkUserId: userId },
+    where: { clerkId: userId },
   });
 
   if (!user) throw new Error("User not found");
@@ -90,7 +88,7 @@ export async function getCoverLetter(id) {
   if (!userId) throw new Error("Unauthorized");
 
   const user = await db.user.findUnique({
-    where: { clerkUserId: userId },
+    where: { clerkId: userId },
   });
 
   if (!user) throw new Error("User not found");
@@ -108,7 +106,7 @@ export async function deleteCoverLetter(id) {
   if (!userId) throw new Error("Unauthorized");
 
   const user = await db.user.findUnique({
-    where: { clerkUserId: userId },
+    where: { clerkId: userId },
   });
 
   if (!user) throw new Error("User not found");

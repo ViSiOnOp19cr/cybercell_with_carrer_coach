@@ -3,15 +3,15 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
-import { FileText, Trash2, ArrowRight, ExternalLink } from "lucide-react";
+import { FileText, Trash2, ArrowRight, ExternalLink, Eye } from "lucide-react";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/src/components/ui/card";
-import { Button } from "@/src/components/ui/button";
+} from "../../../../components/ui/ai-card";
+import { Button } from "../../../../components/ui/ai-button";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,8 +22,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/src/components/ui/alert-dialog";
-import { deleteCoverLetter } from "@/src/actions/cover-letter";
+} from "../../../../components/ui/ai-alert-dialog";
+import { deleteCoverLetter } from "../../../../actions/cover-letter";
 import { toast } from "sonner";
 import Link from "next/link";
 
@@ -106,7 +106,11 @@ export default function CoverLetterList({ coverLetters }) {
           </CardHeader>
           <CardContent>
             <div className="text-muted-foreground text-sm line-clamp-3">
-              {letter.jobDescription}
+              {letter.content ? (
+                <span className="italic">Preview of cover letter content...</span>
+              ) : (
+                "No content available"
+              )}
             </div>
           </CardContent>
         </Card>

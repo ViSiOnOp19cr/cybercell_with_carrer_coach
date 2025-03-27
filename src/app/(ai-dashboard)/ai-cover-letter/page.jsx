@@ -1,10 +1,10 @@
-import { getCoverLetters } from "@/src/actions/cover-letter";
+import { getCoverLetters } from "../../../actions/cover-letter";
 import Link from "next/link";
 import { PlusCircle } from "lucide-react";
-import { Button } from "@/src/components/ui/button";
+import { Button } from "../../../components/ui/ai-button";
 import CoverLetterList from "./_components/cover-letter-list";
 import { redirect } from "next/navigation";
-import { getUserOnboardingStatus } from "@/src/actions/user";
+import { getUserOnboardingStatus } from "../../../actions/user";
 
 export default async function CoverLetterPage() {
   const coverLetters = await getCoverLetters();

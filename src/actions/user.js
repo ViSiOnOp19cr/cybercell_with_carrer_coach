@@ -29,7 +29,8 @@ export async function updateUser(data) {
         // If industry doesn't exist, create it with default values
         if (!industryInsight) {
           const insights = await generateAIInsights(data.industry);
-
+          
+          // Already adapted in the generateAIInsights function
           industryInsight = await db.industryInsight.create({
             data: {
               industry: data.industry,
@@ -48,7 +49,9 @@ export async function updateUser(data) {
             industry: data.industry,
             experience: data.experience,
             bio: data.bio,
-            skills: data.skills,
+            skills: typeof data.skills === 'string' 
+              ? data.skills.split(',').map(skill => skill.trim())
+              : Array.isArray(data.skills) ? data.skills : []
           },
         });
 
@@ -60,7 +63,7 @@ export async function updateUser(data) {
     );
 
     revalidatePath("/");
-    return result.user;
+    return result.updatedUser;
   } catch (error) {
     console.error("Error updating user and industry:", error.message);
     throw new Error("Failed to update profile");

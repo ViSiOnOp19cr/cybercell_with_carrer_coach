@@ -44,7 +44,17 @@ function getActivityIcon(type: ActivityType) {
 
 async function getLevelWithActivities(levelId: string, userId: string): Promise<LevelWithActivities | null> {
   try {
-    // Get level with activities
+    // First, ensure the user exists in our database
+    const user = await db.user.findUnique({
+      where: { clerkId: userId }
+    });
+    
+    if (!user) {
+      console.error(`User with clerkId ${userId} not found in database`);
+      return null;
+    }
+    
+    // Get level data with activities
     const level = await db.level.findUnique({
       where: {
         id: parseInt(levelId)
@@ -66,24 +76,25 @@ async function getLevelWithActivities(levelId: string, userId: string): Promise<
     const userProgress = await db.userProgress.findUnique({
       where: {
         userId_levelId: {
-          userId,
-          levelId: parseInt(levelId)
+          userId: user.id,
+          levelId: level.id
         }
       }
     });
     
-    // Get activity progress
+    // Get required activities for this level
+    const requiredActivitiesList = level.activities.filter((a: Activity) => a.isRequired);
+    const requiredActivitiesCount = requiredActivitiesList.length;
+    
+    // Get user's progress on all activities in this level
     const activityProgress = await db.activityProgress.findMany({
       where: {
-        userId,
+        userId: user.id,
         activity: {
-          levelId: parseInt(levelId)
+          levelId: level.id
         }
       }
     });
-    
-    // Count required activities
-    const requiredActivities = level.activities.filter((a: Activity) => a.isRequired).length;
     
     // Add progress info to activities
     const activitiesWithProgress = level.activities.map((activity: Activity) => {
@@ -123,7 +134,7 @@ async function getLevelWithActivities(levelId: string, userId: string): Promise<
       activitiesCompleted: userProgress?.activitiesCompleted || 0,
       pointsEarned: userProgress?.pointsEarned || 0,
       totalActivities: level.activities.length,
-      requiredActivities
+      requiredActivities: requiredActivitiesCount
     };
   } catch (error) {
     console.error('Error fetching level with activities:', error);
@@ -138,10 +149,11 @@ export default async function LevelDetailPage({ params }: { params: { levelId: s
     redirect("/sign-in");
   }
   
+  // Get user data
   const levelData = await getLevelWithActivities(params.levelId, userId);
   
   if (!levelData) {
-    redirect("/levels");
+    return <div>Level not found or error fetching level data</div>;
   }
   
   return (

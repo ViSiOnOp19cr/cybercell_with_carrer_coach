@@ -1,7 +1,7 @@
-import { getResume } from "@/src/actions/resume";
+import { getResume } from "../../../actions/resume";
 import ResumeBuilder from "./_components/resume-builder";
 import { redirect } from "next/navigation";
-import { getUserOnboardingStatus } from "@/src/actions/user";
+import { getUserOnboardingStatus } from "../../../actions/user";
 
 export default async function ResumePage() {
   // Check if user is onboarded

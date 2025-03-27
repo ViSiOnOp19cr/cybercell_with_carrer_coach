@@ -1,6 +1,6 @@
 "use server";
 
-import { db } from "@/lib/prisma";
+import { db } from "../lib/db";
 import { auth } from "@clerk/nextjs/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
@@ -12,7 +12,7 @@ export async function generateQuiz() {
   if (!userId) throw new Error("Unauthorized");
 
   const user = await db.user.findUnique({
-    where: { clerkUserId: userId },
+    where: { clerkId: userId },
     select: {
       industry: true,
       skills: true,
@@ -62,7 +62,7 @@ export async function saveQuizResult(questions, answers, score) {
   if (!userId) throw new Error("Unauthorized");
 
   const user = await db.user.findUnique({
-    where: { clerkUserId: userId },
+    where: { clerkId: userId },
   });
 
   if (!user) throw new Error("User not found");
@@ -114,10 +114,12 @@ export async function saveQuizResult(questions, answers, score) {
     const assessment = await db.assessment.create({
       data: {
         userId: user.id,
-        quizScore: score,
-        questions: questionResults,
-        category: "Technical",
-        improvementTip,
+        type: "technical_interview",
+        score: score,
+        feedback: improvementTip || "No feedback available",
+        recommendations: wrongAnswers.map(q => 
+          `Study: "${q.question}" - Correct answer: "${q.answer}"`
+        ),
       },
     });
 
@@ -133,7 +135,7 @@ export async function getAssessments() {
   if (!userId) throw new Error("Unauthorized");
 
   const user = await db.user.findUnique({
-    where: { clerkUserId: userId },
+    where: { clerkId: userId},
   });
 
   if (!user) throw new Error("User not found");

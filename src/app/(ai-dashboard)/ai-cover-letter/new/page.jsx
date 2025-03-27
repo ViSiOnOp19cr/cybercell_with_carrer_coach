@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { Button } from "@/src/components/ui/button";
+import { Button } from "../../../../components/ui/ai-button";
 import { ArrowLeft } from "lucide-react";
 import CoverLetterGenerator from "../_components/cover-letter-generator";
 import { redirect } from "next/navigation";
-import { getUserOnboardingStatus } from "@/src/actions/user";
+import { getUserOnboardingStatus } from "../../../../actions/user";
 
 export default async function NewCoverLetterPage() {
   // Check if user is onboarded

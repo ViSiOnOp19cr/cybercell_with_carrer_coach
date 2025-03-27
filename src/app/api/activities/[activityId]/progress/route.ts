@@ -74,11 +74,21 @@ export async function POST(
     const pointsEarned = clientPointsEarned || (score ? Math.round((score / 100) * activity.points) : 0);
     
     try {
+      // First, ensure the user exists in our database
+      const user = await db.user.findUnique({
+        where: { clerkId: userId }
+      });
+      
+      if (!user) {
+        console.error(`User with clerkId ${userId} not found in database`);
+        return new NextResponse(`User not found. Please ensure your account is properly set up.`, { status: 404 });
+      }
+      
       // Find or create user progress for the level first
       let userProgress = await db.userProgress.findUnique({
         where: {
           userId_levelId: {
-            userId,
+            userId: user.id,
             levelId: activity.levelId
           }
         }
@@ -88,7 +98,7 @@ export async function POST(
         // Create user progress record if it doesn't exist
         userProgress = await db.userProgress.create({
           data: {
-            userId,
+            userId: user.id,
             levelId: activity.levelId,
             activitiesCompleted: 0,
             pointsEarned: 0,
@@ -101,7 +111,7 @@ export async function POST(
       const existingProgress = await db.activityProgress.findUnique({
         where: {
           userId_activityId: {
-            userId,
+            userId: user.id,
             activityId
           }
         }
@@ -114,7 +124,7 @@ export async function POST(
           await db.activityProgress.update({
             where: {
               userId_activityId: {
-                userId,
+                userId: user.id,
                 activityId
               }
             },
@@ -131,7 +141,7 @@ export async function POST(
           await db.activityProgress.update({
             where: {
               userId_activityId: {
-                userId,
+                userId: user.id,
                 activityId
               }
             },
@@ -144,7 +154,7 @@ export async function POST(
         // Create new activity progress with required relations
         await db.activityProgress.create({
           data: {
-            userId,
+            userId: user.id,
             activityId,
             progressId: userProgress.id,  // Set the progressId field directly
             isCompleted,
@@ -159,12 +169,12 @@ export async function POST(
       // Update user's total points when activity is completed
       if (isCompleted) {
         // Get the user to update their total points
-        const user = await db.user.findUnique({
-          where: { id: userId },
+        const userToUpdate = await db.user.findUnique({
+          where: { id: user.id },
           select: { totalPoints: true }
         });
         
-        if (user) {
+        if (userToUpdate) {
           // Calculate the points to add
           let pointsToAdd = pointsEarned;
           
@@ -175,11 +185,11 @@ export async function POST(
           
           // Update the user's total points
           if (pointsToAdd > 0) {
-            console.log(`Updating user ${userId} points: ${user.totalPoints} + ${pointsToAdd} = ${user.totalPoints + pointsToAdd}`);
+            console.log(`Updating user ${user.id} points: ${userToUpdate.totalPoints} + ${pointsToAdd} = ${userToUpdate.totalPoints + pointsToAdd}`);
             await db.user.update({
-              where: { id: userId },
+              where: { id: user.id },
               data: {
-                totalPoints: user.totalPoints + pointsToAdd
+                totalPoints: userToUpdate.totalPoints + pointsToAdd
               }
             });
           }
@@ -191,7 +201,7 @@ export async function POST(
         // Get all completed activities for this level
         const completedActivities = await db.activityProgress.findMany({
           where: {
-            userId,
+            userId: user.id,
             activity: {
               levelId: activity.levelId
             },
@@ -220,7 +230,7 @@ export async function POST(
           await db.userProgress.update({
             where: {
               userId_levelId: {
-                userId,
+                userId: user.id,
                 levelId: level.id
               }
             },
@@ -234,15 +244,15 @@ export async function POST(
           
           // If level is completed, update the user's currentLevel if this is their current level
           if (isLevelCompleted) {
-            const user = await db.user.findUnique({
-              where: { id: userId },
+            const userToUpdate = await db.user.findUnique({
+              where: { id: user.id },
               select: { currentLevel: true, totalPoints: true }
             });
             
-            if (user && user.currentLevel === level.order) {
+            if (userToUpdate && userToUpdate.currentLevel === level.order) {
               // Update user's current level to the next level, but don't add points again
               await db.user.update({
-                where: { id: userId },
+                where: { id: user.id },
                 data: {
                   currentLevel: level.order + 1
                 }
@@ -266,13 +276,13 @@ export async function POST(
               await db.userAchievement.upsert({
                 where: {
                   userId_achievementId: {
-                    userId,
+                    userId: user.id,
                     achievementId: levelMasterAchievement.id
                   }
                 },
                 update: {},
                 create: {
-                  userId,
+                  userId: user.id,
                   achievementId: levelMasterAchievement.id,
                   earnedAt: new Date()
                 }
@@ -293,13 +303,13 @@ export async function POST(
               await db.userAchievement.upsert({
                 where: {
                   userId_achievementId: {
-                    userId,
+                    userId: user.id,
                     achievementId: perfectQuizAchievement.id
                   }
                 },
                 update: {},
                 create: {
-                  userId,
+                  userId: user.id,
                   achievementId: perfectQuizAchievement.id,
                   earnedAt: new Date()
                 }

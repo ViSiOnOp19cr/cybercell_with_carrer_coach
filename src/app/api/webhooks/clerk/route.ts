@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
       // Create the user in our database
       const user = await db.user.create({
         data: {
-          id,
+          clerkId: id,
           email: primaryEmail.email_address,
           firstName: first_name,
           lastName: last_name,
@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
       // Create initial progress for level 1
       await db.userProgress.create({
         data: {
-          userId: id,
+          userId: user.id,
           levelId: 1,
           isCompleted: false,
           pointsEarned: 0,
@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
       if (firstStepsAchievement) {
         await db.userAchievement.create({
           data: {
-            userId: id,
+            userId: user.id,
             achievementId: firstStepsAchievement.id
           }
         });
@@ -131,7 +131,7 @@ export async function POST(request: NextRequest) {
       // Check if user exists in our database
       const existingUser = await db.user.findUnique({
         where: {
-          id
+          clerkId: id
         }
       });
 
@@ -139,7 +139,7 @@ export async function POST(request: NextRequest) {
         // Update the user
         const updatedUser = await db.user.update({
           where: {
-            id
+            clerkId: id
           },
           data: {
             email: primaryEmail.email_address,
@@ -154,7 +154,7 @@ export async function POST(request: NextRequest) {
         // Create the user if they don't exist
         const user = await db.user.create({
           data: {
-            id,
+            clerkId: id,
             email: primaryEmail.email_address,
             firstName: first_name,
             lastName: last_name,
@@ -167,7 +167,7 @@ export async function POST(request: NextRequest) {
         // Create initial progress for level 1
         await db.userProgress.create({
           data: {
-            userId: id,
+            userId: user.id,
             levelId: 1,
             isCompleted: false,
             pointsEarned: 0,
@@ -185,7 +185,7 @@ export async function POST(request: NextRequest) {
       // Delete the user from our database
       await db.user.delete({
         where: {
-          id
+          clerkId: id
         }
       });
 

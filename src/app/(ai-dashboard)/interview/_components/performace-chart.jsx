@@ -15,7 +15,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/src/components/ui/ai-card";
+} from "../../../../components/ui/ai-card";
 import { useEffect, useState } from "react";
 import { format } from "date-fns";
 
@@ -26,7 +26,7 @@ export default function PerformanceChart({ assessments }) {
     if (assessments) {
       const formattedData = assessments.map((assessment) => ({
         date: format(new Date(assessment.createdAt), "MMM dd"),
-        score: assessment.quizScore,
+        score: assessment.score,
       }));
       setChartData(formattedData);
     }

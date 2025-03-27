@@ -17,26 +17,13 @@ interface LevelWithUserProgress extends Level {
 
 async function getLevelsWithProgress(userId: string): Promise<LevelWithUserProgress[]> {
   try {
-    // Get all levels
-    const levels = await db.level.findMany({
-      orderBy: {
-        order: 'asc'
-      }
-    });
-    
-    // Get user progress
-    const userProgress = await db.userProgress.findMany({
-      where: {
-        userId
-      }
-    });
-    
-    // Get user to determine current level
+    // First, get the user to get their database ID
     const user = await db.user.findUnique({
       where: {
         clerkId: userId
       },
       select: {
+        id: true,
         currentLevel: true
       }
     });
@@ -44,6 +31,20 @@ async function getLevelsWithProgress(userId: string): Promise<LevelWithUserProgr
     if (!user) {
       throw new Error('User not found');
     }
+    
+    // Get all levels
+    const levels = await db.level.findMany({
+      orderBy: {
+        order: 'asc'
+      }
+    });
+    
+    // Get user progress using the database user ID
+    const userProgress = await db.userProgress.findMany({
+      where: {
+        userId: user.id
+      }
+    });
     
     // Combine levels with progress data
     return levels.map((level: Level) => {

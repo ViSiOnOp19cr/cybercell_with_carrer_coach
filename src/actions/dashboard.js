@@ -11,6 +11,7 @@ export const generateAIInsights = async (industry) => {
   const prompt = `
           Analyze the current state of the ${industry} industry and provide insights in ONLY the following JSON format without any additional notes or explanations:
           {
+            "description": "string",
             "salaryRanges": [
               { "role": "string", "min": number, "max": number, "median": number, "location": "string" }
             ],
@@ -26,6 +27,7 @@ export const generateAIInsights = async (industry) => {
           Include at least 5 common roles for salary ranges.
           Growth rate should be a percentage.
           Include at least 5 skills and trends.
+          Description should be a concise overview of the industry's current state and future prospects.
         `;
 
   const result = await model.generateContent(prompt);
@@ -33,7 +35,27 @@ export const generateAIInsights = async (industry) => {
   const text = response.text();
   const cleanedText = text.replace(/```(?:json)?\n?/g, "").trim();
 
-  return JSON.parse(cleanedText);
+  let parsedData = JSON.parse(cleanedText);
+  
+  // Ensure description field exists
+  if (!parsedData.description) {
+    parsedData.description = `Overview of the ${industry} industry`;
+  }
+
+  // Adapt data to match Prisma schema
+  const adaptedData = {
+    description: parsedData.description,
+    trends: Array.isArray(parsedData.keyTrends) ? parsedData.keyTrends : [],
+    skills: Array.isArray(parsedData.topSkills) ? parsedData.topSkills : 
+           (Array.isArray(parsedData.recommendedSkills) ? parsedData.recommendedSkills : []),
+    // Convert salaryRanges array to a string to match the schema
+    salaryRange: parsedData.salaryRanges ? JSON.stringify(parsedData.salaryRanges) : null,
+    growthRate: parsedData.growthRate || 0,
+    demandLevel: parsedData.demandLevel || null,
+    marketOutlook: parsedData.marketOutlook || null
+  };
+
+  return adaptedData;
 };
 
 export async function getIndustryInsights() {
@@ -41,7 +63,7 @@ export async function getIndustryInsights() {
   if (!userId) throw new Error("Unauthorized");
 
   const user = await db.user.findUnique({
-    where: { clerkUserId: userId },
+    where: { clerkId: userId },
     include: {
       industryInsight: true,
     },
@@ -52,7 +74,8 @@ export async function getIndustryInsights() {
   // If no insights exist, generate them
   if (!user.industryInsight) {
     const insights = await generateAIInsights(user.industry);
-
+    
+    // Data already adapted in generateAIInsights
     const industryInsight = await db.industryInsight.create({
       data: {
         industry: user.industry,
@@ -61,8 +84,18 @@ export async function getIndustryInsights() {
       },
     });
 
-    return industryInsight;
+    // Add updatedAt for UI consistency
+    return {
+      ...industryInsight,
+      updatedAt: new Date(),
+    };
   }
 
-  return user.industryInsight;
+  // Add lastUpdated field for UI consistency
+  return {
+    ...user.industryInsight,
+    updatedAt: user.industryInsight.nextUpdate 
+      ? new Date(user.industryInsight.nextUpdate.getTime() - 7 * 24 * 60 * 60 * 1000) 
+      : new Date()
+  };
 }

@@ -29,15 +29,15 @@ export async function POST(request: NextRequest) {
     // Check if user already exists
     const existingUser = await db.user.findUnique({
       where: {
-        id: clerkUserId
+        clerkId: clerkUserId
       }
     });
 
     if (existingUser) {
-      // Update existing user
+      // Update the user
       const updatedUser = await db.user.update({
         where: {
-          id: clerkUserId
+          clerkId: clerkUserId
         },
         data: {
           email,
@@ -49,10 +49,10 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json(updatedUser);
     } else {
-      // Create new user
+      // Create a new user
       const newUser = await db.user.create({
         data: {
-          id: clerkUserId,
+          clerkId: clerkUserId,
           email,
           firstName,
           lastName,
@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
       // Create initial progress for level 1
       await db.userProgress.create({
         data: {
-          userId: clerkUserId,
+          userId: newUser.id,
           levelId: 1,
           isCompleted: false,
           pointsEarned: 0,
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
       if (firstStepsAchievement) {
         await db.userAchievement.create({
           data: {
-            userId: clerkUserId,
+            userId: newUser.id,
             achievementId: firstStepsAchievement.id
           }
         });
@@ -115,7 +115,7 @@ export async function GET() {
 
     const user = await db.user.findUnique({
       where: {
-        id: userId
+        clerkId: userId
       }
     });
 

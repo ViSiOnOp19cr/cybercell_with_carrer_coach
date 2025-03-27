@@ -1,6 +1,6 @@
 "use server";
 
-import { db } from "@/lib/prisma";
+import { db } from "../lib/db";
 import { auth } from "@clerk/nextjs/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { revalidatePath } from "next/cache";
@@ -13,7 +13,7 @@ export async function saveResume(content) {
   if (!userId) throw new Error("Unauthorized");
 
   const user = await db.user.findUnique({
-    where: { clerkUserId: userId },
+    where: { clerkId: userId },
   });
 
   if (!user) throw new Error("User not found");
@@ -45,12 +45,12 @@ export async function getResume() {
   if (!userId) throw new Error("Unauthorized");
 
   const user = await db.user.findUnique({
-    where: { clerkUserId: userId },
+    where: { clerkId: userId },
   });
 
   if (!user) throw new Error("User not found");
 
-  return await db.resume.findUnique({
+  return await db.resume.findFirst({
     where: {
       userId: user.id,
     },
@@ -62,7 +62,7 @@ export async function improveWithAI({ current, type }) {
   if (!userId) throw new Error("Unauthorized");
 
   const user = await db.user.findUnique({
-    where: { clerkUserId: userId },
+    where: { clerkId: userId },
     include: {
       industryInsight: true,
     },

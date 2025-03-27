@@ -18,6 +18,15 @@ export default async function ActivityPage({ params }: {
     redirect("/sign-in");
   }
   
+  // Get user data
+  const user = await db.user.findUnique({
+    where: { clerkId: userId }
+  });
+  
+  if (!user) {
+    redirect("/sign-in");
+  }
+  
   // Get activity data
   const activity = await db.activity.findUnique({
     where: {
@@ -44,7 +53,7 @@ export default async function ActivityPage({ params }: {
   const activityProgress = await db.activityProgress.findUnique({
     where: {
       userId_activityId: {
-        userId,
+        userId: user.id,
         activityId: parseInt(params.activityId)
       }
     }
@@ -59,56 +68,49 @@ export default async function ActivityPage({ params }: {
   }
   
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-2">
+    <div className="max-w-5xl mx-auto px-4 py-8">
+      <div className="mb-8">
         <Link 
-          href={`/levels/${params.levelId}`} 
-          className="text-gray-400 hover:text-white flex items-center"
+          href={`/levels/${params.levelId}`}
+          className="inline-flex items-center text-sm text-blue-500 hover:text-blue-600"
         >
-          <ChevronLeft className="h-5 w-5 mr-1" />
-          Back to Level {level.order}
+          <ChevronLeft className="mr-1 h-4 w-4" />
+          Back to Level
         </Link>
+        <h1 className="text-3xl font-bold mt-4">{activity.name}</h1>
       </div>
       
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">{activity.name}</h1>
-        <p className="text-gray-400 mt-2">{activity.description}</p>
-      </div>
-      
-      <Card className="p-6 bg-black/30 border-green-500/20">
-        {/* Render the appropriate activity component based on type */}
-        {activity.type === 'QUIZ' && (
+      <Card className="mb-8 p-6 bg-gray-800/30">
+        {/* Activity component based on type */}
+        {activity.type === "QUIZ" && (
           <QuizActivity 
             activity={activity} 
-            userId={userId} 
+            userId={user.id} 
             progress={activityProgress}
           />
         )}
         
-        {activity.type === 'READING' && (
-          <ReadingActivity 
-            activity={activity} 
-            userId={userId} 
-            progress={activityProgress}
-          />
-        )}
-        
-        {activity.type === 'LAB' && (
+        {activity.type === "LAB" && (
           <LabActivity 
             activity={activity} 
-            userId={userId} 
+            userId={user.id}
             progress={activityProgress}
           />
         )}
         
-        {!['QUIZ', 'READING', 'LAB'].includes(activity.type) && (
-          <div className="text-center py-8">
-            <h3 className="text-xl font-semibold mb-4">
-              Activity Type Not Implemented Yet
-            </h3>
-            <p className="text-gray-400 mb-6">
-              This type of activity ({activity.type}) is not available yet.
-            </p>
+        {activity.type === "READING" && (
+          <ReadingActivity 
+            activity={activity} 
+            userId={user.id}
+            progress={activityProgress}
+          />
+        )}
+        
+        {/* Default message if unknown activity type */}
+        {!["QUIZ", "LAB", "READING"].includes(activity.type) && (
+          <div className="text-center py-12">
+            <h2 className="text-2xl font-bold mb-4">Activity Type Not Supported</h2>
+            <p className="text-gray-400 mb-6">This activity type is not currently supported in the platform.</p>
             <Button asChild>
               <Link href={`/levels/${params.levelId}`}>
                 Return to Level
@@ -117,6 +119,14 @@ export default async function ActivityPage({ params }: {
           </div>
         )}
       </Card>
+      
+      <div className="text-right mt-4">
+        <Button asChild>
+          <Link href={`/levels/${params.levelId}`}>
+            Return to Level
+          </Link>
+        </Button>
+      </div>
     </div>
   );
 } 

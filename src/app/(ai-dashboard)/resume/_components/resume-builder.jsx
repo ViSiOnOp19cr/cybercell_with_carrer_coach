@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -11,19 +11,20 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/src/components/ui/ai-card";
-import { Button } from "@/src/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/src/components/ui/tabs";
-import { Textarea } from "@/src/components/ui/textarea";
-import { Input } from "@/src/components/ui/input";
-import { saveResume } from "@/src/actions/resume";
-import { Loader2, PlusCircle } from "lucide-react";
-import useFetch from "@/src/hooks/use-fetch";
-import EntryForm from "./entry-form";
-import { entriesToMarkdown } from "@/src/app/lib/helper";
-import { resumeSchema } from "@/src/app/lib/schema";
+} from "../../../../components/ui/ai-card";
+import { Button } from "../../../../components/ui/ai-button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../../components/ui/ai-tabs";
+import { Textarea } from "../../../../components/ui/ai-textarea";
+import { Input } from "../../../../components/ui/ai-input";
+import { saveResume } from "../../../../actions/resume";
+import { Loader2, PlusCircle, Save, Download, Edit, Monitor, AlertTriangle } from "lucide-react";
+import useFetch from "../../../../hooks/use-fetch";
+import { EntryForm } from "./entry-form";
+import { entriesToMarkdown } from "../../../../lib/helper";
+import { resumeSchema } from "../../../../lib/schema";
 import MDEditor from "@uiw/react-md-editor";
-import html2pdf from "html2pdf.js/dist/html2pdf.min.js";
+import { useUser } from "@clerk/nextjs";
+import { marked } from "marked";
 
 export default function ResumeBuilder({ initialContent }) {
   const [activeTab, setActiveTab] = useState("edit");
@@ -115,18 +116,87 @@ export default function ResumeBuilder({ initialContent }) {
   const generatePDF = async () => {
     setIsGenerating(true);
     try {
-      const element = document.getElementById("resume-pdf");
-      const opt = {
-        margin: [15, 15],
-        filename: "resume.pdf",
-        image: { type: "jpeg", quality: 0.98 },
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-      };
-
-      await html2pdf().set(opt).from(element).save();
+      // Convert markdown to simple HTML (avoiding React components)
+      let htmlContent = '';
+      try {
+        htmlContent = marked.parse(previewContent);
+      } catch (e) {
+        console.error("Markdown parsing error:", e);
+        // Fallback to simple conversion if marked fails
+        htmlContent = previewContent
+          .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+          .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+          .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+          .replace(/\*\*(.*)\*\*/gim, '<strong>$1</strong>')
+          .replace(/\*(.*)\*/gim, '<em>$1</em>')
+          .replace(/\n/gim, '<br />');
+      }
+      
+      // Create a new window for the PDF content
+      const printWindow = window.open('', '_blank', 'width=800,height=600');
+      if (!printWindow) {
+        throw new Error("Unable to open print window. Please allow popups for this site.");
+      }
+      
+      // Write simple HTML with inline styles (no CSS variables or modern color functions)
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Resume - ${user?.fullName || 'My Resume'}</title>
+          <style>
+            body {
+              font-family: Arial, Helvetica, sans-serif;
+              line-height: 1.6;
+              color: #000000;
+              background-color: #ffffff;
+              padding: 20px;
+              max-width: 800px;
+              margin: 0 auto;
+            }
+            h1, h2, h3 {
+              color: #333333;
+              margin-top: 20px;
+              margin-bottom: 10px;
+            }
+            h1 { font-size: 24px; }
+            h2 { font-size: 20px; border-bottom: 1px solid #dddddd; padding-bottom: 5px; }
+            h3 { font-size: 18px; }
+            p { margin-bottom: 10px; }
+            ul { margin-top: 5px; margin-bottom: 10px; }
+            a { color: #0066cc; text-decoration: none; }
+            .container { margin-bottom: 15px; }
+            @media print {
+              body { 
+                padding: 0; 
+                margin: 0; 
+              }
+              @page {
+                size: A4;
+                margin: 1cm;
+              }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            ${htmlContent}
+          </div>
+          <script>
+            // Use timeout to ensure content is fully rendered before printing
+            setTimeout(() => {
+              window.print();
+              // Don't automatically close the window so users can try again if needed
+            }, 500);
+          </script>
+        </body>
+        </html>
+      `);
+      
+      toast.success("Resume sent to printer. Save as PDF to download.");
     } catch (error) {
       console.error("PDF generation error:", error);
+      toast.error("Failed to generate PDF: " + error.message);
     } finally {
       setIsGenerating(false);
     }
@@ -400,17 +470,6 @@ export default function ResumeBuilder({ initialContent }) {
               height={800}
               preview={resumeMode}
             />
-          </div>
-          <div className="hidden">
-            <div id="resume-pdf">
-              <MDEditor.Markdown
-                source={previewContent}
-                style={{
-                  background: "white",
-                  color: "black",
-                }}
-              />
-            </div>
           </div>
         </TabsContent>
       </Tabs>

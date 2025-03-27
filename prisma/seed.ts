@@ -142,94 +142,83 @@ async function main() {
       name: 'Security Detective: CIA Triad in Action',
       description: 'Identify security issues in everyday scenarios and classify them according to the CIA triad.',
       type: 'LAB' as ActivityType,
-      content: {
+      content: JSON.stringify({
         title: 'Security Detective: CIA Triad in Action',
-        description: 'Examine everyday workplace scenarios to identify security issues and determine which component of the CIA triad is being violated.',
-        instructions: '<p>Your job as a Security Detective is to analyze each scenario, identify the security issue, and classify which part of the CIA triad (Confidentiality, Integrity, or Availability) is being violated.</p><p>For each scenario:</p><ol><li>Click on the card to view details</li><li>Identify the security issue</li><li>Select which CIA component is affected</li><li>Choose an appropriate solution</li></ol>',
-        setupGuide: '<p>No special setup is required. Just click "Start Investigation" to begin analyzing the scenarios.</p>',
-        scenarios: [
+        description: 'Examine everyday workplace scenarios to identify security issues related to the CIA triad.',
+        instructions: '<p>Your job as a Security Detective is to investigate the virtual office environment, identify security issues, and implement appropriate solutions based on the CIA triad principles (Confidentiality, Integrity, and Availability).</p><p>For each object in the office:</p><ol><li>Click on the object to examine it</li><li>Review the security issues found</li><li>Understand the impact of each issue on the organization</li><li>Implement the appropriate solution</li></ol>',
+        setupGuide: '<p>No special setup is required. Click on objects in the virtual office to begin your investigation.</p>',
+        officeObjects: [
           {
-            id: "scenario1",
-            title: "Password on a Sticky Note",
-            description: "An employee has their system password written on a sticky note attached to their monitor, visible to anyone walking by.",
-            image: "/images/labs/level1/sticky-note.svg",
-            question: "Which component of the CIA triad is most at risk in this scenario?",
-            options: ["Confidentiality", "Integrity", "Availability"],
-            correctAnswer: "Confidentiality",
-            explanation: "This violates confidentiality because unauthorized individuals could easily see and use the password to access sensitive information.",
-            solutions: [
-              { id: "s1", text: "Create a password policy that prohibits writing down passwords", correct: true },
-              { id: "s2", text: "Implement a backup system for the computer", correct: false },
-              { id: "s3", text: "Install antivirus software", correct: false }
+            id: "computer1",
+            name: "Employee Workstation",
+            type: "computer",
+            position: { x: 100, y: 100 },
+            image: "/images/labs/level1/computer.svg",
+            isInteractable: true,
+            securityIssues: [
+              {
+                id: "issue1",
+                type: "confidentiality",
+                description: "Computer is left unlocked with sensitive data visible",
+                impact: "Unauthorized access to sensitive information",
+                solution: "Implement automatic screen locking after inactivity",
+                isFixed: false
+              }
             ]
           },
           {
-            id: "scenario2",
-            title: "Unattended Logged-in Computer",
-            description: "A computer is left unlocked and logged in while the employee is away at lunch, with sensitive customer data visible on screen.",
-            image: "/images/labs/level1/unattended-computer.svg",
-            question: "Which component of the CIA triad is most at risk in this scenario?",
-            options: ["Confidentiality", "Integrity", "Availability"],
-            correctAnswer: "Confidentiality",
-            explanation: "This violates confidentiality because anyone could view the sensitive data while the employee is away.",
-            solutions: [
-              { id: "s1", text: "Implement automatic screen locking after a short period of inactivity", correct: true },
-              { id: "s2", text: "Install a more powerful CPU", correct: false },
-              { id: "s3", text: "Use cloud storage for the data", correct: false }
+            id: "document1",
+            name: "Confidential Report",
+            type: "document",
+            position: { x: 200, y: 150 },
+            image: "/images/labs/level1/document.svg",
+            isInteractable: true,
+            securityIssues: [
+              {
+                id: "issue2",
+                type: "integrity",
+                description: "Document is not properly secured and can be modified",
+                impact: "Unauthorized modifications to sensitive data",
+                solution: "Implement document version control and access restrictions",
+                isFixed: false
+              }
             ]
           },
           {
-            id: "scenario3",
-            title: "No Data Backups",
-            description: "A small business stores all their customer and financial records on a single computer with no backup system in place.",
-            image: "/images/labs/level1/no-backup.svg",
-            question: "Which component of the CIA triad is most at risk in this scenario?",
-            options: ["Confidentiality", "Integrity", "Availability"],
-            correctAnswer: "Availability",
-            explanation: "This violates availability because if the computer fails, all the data would be lost and unavailable.",
-            solutions: [
-              { id: "s1", text: "Implement a regular backup system to multiple locations", correct: true },
-              { id: "s2", text: "Install a firewall", correct: false },
-              { id: "s3", text: "Create longer passwords", correct: false }
+            id: "cabinet1",
+            name: "Filing Cabinet",
+            type: "cabinet",
+            position: { x: 300, y: 200 },
+            image: "/images/labs/level1/cabinet.svg",
+            isInteractable: true,
+            securityIssues: [
+              {
+                id: "issue3",
+                type: "confidentiality",
+                description: "Physical documents are not properly secured",
+                impact: "Unauthorized physical access to sensitive documents",
+                solution: "Implement physical security controls and access logs",
+                isFixed: false
+              }
             ]
           },
           {
-            id: "scenario4",
-            title: "Shared Login Credentials",
-            description: "Multiple employees are using the same username and password to access the company's financial system.",
-            image: "/images/labs/level1/shared-login.svg",
-            question: "Which component of the CIA triad is most at risk in this scenario?",
-            options: ["Confidentiality", "Integrity", "Availability"],
-            correctAnswer: "Confidentiality",
-            explanation: "This violates confidentiality because it's impossible to control who has access to sensitive information when credentials are shared.",
-            solutions: [
-              { id: "s1", text: "Create individual accounts for each employee with appropriate access levels", correct: true },
-              { id: "s2", text: "Change the shared password more frequently", correct: false },
-              { id: "s3", text: "Encrypt the financial data", correct: false }
+            id: "printer1",
+            name: "Network Printer",
+            type: "printer",
+            position: { x: 400, y: 250 },
+            image: "/images/labs/level1/printer.svg",
+            isInteractable: true,
+            securityIssues: [
+              {
+                id: "issue4",
+                type: "availability",
+                description: "Printer lacks proper security controls",
+                impact: "Potential for denial of service attacks",
+                solution: "Implement printer access controls and monitoring",
+                isFixed: false
+              }
             ]
-          },
-          {
-            id: "scenario5",
-            title: "Unauthorized Database Modification",
-            description: "A disgruntled employee has modified customer records in the database without authorization.",
-            image: "/images/labs/level1/database-modification.svg",
-            question: "Which component of the CIA triad is most at risk in this scenario?",
-            options: ["Confidentiality", "Integrity", "Availability"],
-            correctAnswer: "Integrity",
-            explanation: "This violates integrity because the data has been altered in an unauthorized way, making it untrustworthy.",
-            solutions: [
-              { id: "s1", text: "Implement database access controls and audit logging", correct: true },
-              { id: "s2", text: "Increase the frequency of data backups", correct: false },
-              { id: "s3", text: "Add more encryption to the database", correct: false }
-            ]
-          }
-        ],
-        tasks: [
-          {
-            id: "task1",
-            description: "Analyze all scenarios and correctly identify CIA triad violations.",
-            hint: "Remember that some scenarios might affect multiple components of the CIA triad.",
-            solution: "Refer to the explanations provided for each scenario after submission."
           }
         ],
         resources: [
@@ -242,7 +231,7 @@ async function main() {
             url: "https://www.sans.org/security-awareness-training/resources/security-awareness-planning-toolkit"
           }
         ]
-      },
+      }),
       points: 50,
       order: 3,
       isRequired: true
@@ -698,7 +687,7 @@ async function main() {
           }
         ]
       },
-      points: 30,
+      points: 40,
       order: 1,
       isRequired: true
     },
@@ -736,7 +725,7 @@ async function main() {
           }
         ]
       },
-      points: 40,
+      points: 50,
       order: 2,
       isRequired: true
     },
@@ -876,7 +865,7 @@ db.query(query, [id]);</pre>`
           }
         ]
       },
-      points: 50,
+      points: 60,
       order: 3,
       isRequired: true
     }
@@ -928,7 +917,7 @@ db.query(query, [id]);</pre>`
           }
         ]
       },
-      points: 30,
+      points: 40,
       order: 1,
       isRequired: true
     },
@@ -981,7 +970,7 @@ db.query(query, [id]);</pre>`
           }
         ]
       },
-      points: 40,
+      points: 50,
       order: 2,
       isRequired: true
     },
@@ -1105,7 +1094,7 @@ db.query(query, [id]);</pre>`
           }
         ]
       },
-      points: 50,
+      points: 60,
       order: 3,
       isRequired: true
     }
@@ -1142,7 +1131,7 @@ db.query(query, [id]);</pre>`
           }
         ]
       },
-      points: 30,
+      points: 50,
       order: 1,
       isRequired: true
     },
@@ -1190,7 +1179,7 @@ db.query(query, [id]);</pre>`
           }
         ]
       },
-      points: 40,
+      points: 60,
       order: 2,
       isRequired: true
     },
@@ -1340,7 +1329,7 @@ db.query(query, [id]);</pre>`
           }
         ]
       },
-      points: 50,
+      points: 70,
       order: 3,
       isRequired: true
     }
@@ -1422,163 +1411,83 @@ db.query(query, [id]);</pre>`
     {
       levelId: 6,
       name: 'Social Engineering Fundamentals',
-      description: 'Learn about different social engineering tactics and how to identify them.',
+      description: 'Learn about different types of social engineering attacks and how they work.',
       type: 'READING' as ActivityType,
       content: {
         sections: [
           {
             title: 'What is Social Engineering?',
-            content: 'Social engineering is the psychological manipulation of people into performing actions or divulging confidential information. It relies on human error rather than technical hacking techniques to gain access to systems, networks, or physical locations.'
+            content: 'Social engineering is the psychological manipulation of people into performing actions or divulging confidential information. It relies on human error rather than technical hacking techniques to gain access to systems, networks, or physical locations. Social engineering attacks exploit human psychology and natural tendencies such as trust, fear, greed, and the desire to be helpful. Unlike technical exploits that target system vulnerabilities, social engineering targets the human element of security—often considered the weakest link in any security system. These attacks can occur in-person, over the phone, through email, social media, or any channel where human interaction takes place. Understanding how social engineers operate is critical to building effective defenses against these psychological attacks.'
           },
           {
             title: 'Common Social Engineering Techniques',
-            content: 'Phishing, pretexting, baiting, quid pro quo, tailgating, and other methods designed to manipulate people into breaking security procedures.'
+            content: `<p><strong>Phishing:</strong> Sending deceptive emails that appear to come from legitimate sources to trick recipients into revealing sensitive information, clicking malicious links, or opening infected attachments. Variants include:</p>
+            <ul>
+              <li><strong>Spear Phishing:</strong> Highly targeted phishing attacks customized for specific individuals or organizations</li>
+              <li><strong>Whaling:</strong> Phishing attacks specifically targeting high-value individuals like executives or high-ranking officials</li>
+              <li><strong>Smishing:</strong> Phishing conducted via SMS text messages</li>
+              <li><strong>Vishing:</strong> Voice phishing conducted over phone calls</li>
+            </ul>
+            <p><strong>Pretexting:</strong> Creating a fabricated scenario (pretext) to engage a victim and gain their trust, typically by impersonating someone with authority or right to access information (like IT support, bank representatives, or coworkers).</p>
+            <p><strong>Baiting:</strong> Offering something enticing to victims (free downloads, gift cards, music, movies) to entice them into a trap that steals information or installs malware.</p>
+            <p><strong>Quid Pro Quo:</strong> Offering a service or benefit in exchange for information or access (similar to baiting but presenting as a fair exchange).</p>
+            <p><strong>Tailgating/Piggybacking:</strong> Following an authorized person into a secured area or system without proper authentication.</p>
+            <p><strong>Water Holing:</strong> Compromising websites frequently visited by the target to deliver malware.</p>
+            <p><strong>Scareware:</strong> Tricking users into thinking their system is infected with malware to convince them to install malicious software or pay for fake solutions.</p>
+            <p><strong>Deepfakes:</strong> Using AI to create convincing but fake video or audio to impersonate trusted individuals.</p>`
+          },
+          {
+            title: 'Social Engineering Attack Lifecycle',
+            content: `<p>Most social engineering attacks follow a predictable pattern:</p>
+            <ol>
+              <li><strong>Information Gathering:</strong> Researching targets using public information from social media, corporate websites, and other sources</li>
+              <li><strong>Relationship Development:</strong> Establishing rapport and credibility with targets through various channels</li>
+              <li><strong>Exploitation:</strong> Manipulating targets into providing access, information, or taking harmful actions</li>
+              <li><strong>Execution:</strong> Achieving the primary goal such as data theft, system access, or financial fraud</li>
+              <li><strong>Exit:</strong> Covering tracks and leaving with minimal detection</li>
+            </ol>
+            <p>Understanding this lifecycle helps security teams develop appropriate detection and intervention strategies at each stage.</p>`
+          },
+          {
+            title: 'Psychological Principles Exploited',
+            content: `<p>Social engineers exploit several human psychological tendencies:</p>
+            <ul>
+              <li><strong>Authority:</strong> People tend to comply with requests from authority figures</li>
+              <li><strong>Urgency/Scarcity:</strong> Time pressure or limited availability pushes people to act quickly without careful consideration</li>
+              <li><strong>Social Proof:</strong> People tend to follow what others are doing, especially in unfamiliar situations</li>
+              <li><strong>Liking:</strong> People are more likely to comply with requests from someone they like or find attractive</li>
+              <li><strong>Reciprocity:</strong> People feel obligated to return favors</li>
+              <li><strong>Commitment/Consistency:</strong> Once people take a stand, they feel pressure to behave consistently with that position</li>
+              <li><strong>Fear:</strong> Strong emotional responses can override rational thinking</li>
+            </ul>`
           },
           {
             title: 'Preventing Social Engineering Attacks',
-            content: 'Implementing security awareness training, multi-factor authentication, and verification procedures to protect against social engineering attempts.'
+            content: `<p><strong>Organizational Controls:</strong></p>
+            <ul>
+              <li>Implementing comprehensive security awareness training for all employees</li>
+              <li>Establishing clear security policies and procedures for handling sensitive information</li>
+              <li>Creating verification procedures for requests involving sensitive information or system access</li>
+              <li>Implementing multi-factor authentication across all systems and applications</li>
+              <li>Conducting regular simulated phishing exercises to test employee awareness</li>
+              <li>Developing incident response plans specifically for social engineering attacks</li>
+              <li>Implementing technical controls like email filtering, web filtering, and endpoint protection</li>
+            </ul>
+            <p><strong>Individual Best Practices:</strong></p>
+            <ul>
+              <li>Verify requests for sensitive information through secondary channels</li>
+              <li>Be skeptical of unsolicited communications, especially those creating urgency</li>
+              <li>Never provide credentials or sensitive information in response to unsolicited requests</li>
+              <li>Check email sender addresses carefully and hover over links before clicking</li>
+              <li>Keep personal information private on social media and professional networking sites</li>
+              <li>Report suspicious activities or communications immediately</li>
+            </ul>
+            <p>Remember that even security-conscious organizations can fall victim to sophisticated social engineering attacks. Maintaining a culture of security awareness and healthy skepticism is the best defense.</p>`
           }
         ]
       },
-      points: 30,
+      points: 50,
       order: 1,
-      isRequired: true
-    },
-    {
-      levelId: 6,
-      name: 'Phishing Recognition Quiz',
-      description: 'Test your ability to identify phishing attempts in emails and messages.',
-      type: 'QUIZ' as ActivityType,
-      content: {
-        questions: [
-          {
-            question: 'Which of the following is a common indicator of a phishing email?',
-            options: [
-              'Personalized greeting using your full name',
-              'Urgent request for action with time pressure',
-              'Email from someone in your contact list',
-              'Clear explanation of why they need information'
-            ],
-            correctAnswer: 'Urgent request for action with time pressure'
-          },
-          {
-            question: 'What should you check before clicking a link in an email?',
-            options: [
-              'If the email uses proper grammar',
-              'If the sender is someone you know',
-              'The actual URL destination by hovering over the link',
-              'If the email has attachments'
-            ],
-            correctAnswer: 'The actual URL destination by hovering over the link'
-          },
-          {
-            question: 'Which of the following email sender addresses is most likely to be a phishing attempt?',
-            options: [
-              'support@paypal.com',
-              'john.smith@company.com',
-              'account-verify@paypa1.com',
-              'newsletter@amazon.com'
-            ],
-            correctAnswer: 'account-verify@paypa1.com'
-          }
-        ]
-      },
-      points: 40,
-      order: 2,
-      isRequired: true
-    },
-    {
-      levelId: 6,
-      name: 'Social Engineering Lab',
-      description: 'Practice identifying various types of social engineering attacks including phishing, voice phishing, and deepfakes.',
-      type: 'LAB' as ActivityType,
-      content: {
-        title: 'Social Engineering Lab',
-        description: 'Identify and analyze different types of social engineering attacks including phishing emails, deepfakes, voice phishing, and social media scams.',
-        emailScenarios: [
-          {
-            id: "email1",
-            title: "Banking Alert",
-            sender: "security@bankofamerica-secure.com",
-            subject: "Urgent: Your account has been limited",
-            body: "Dear Valued Customer,\n\nWe have detected unusual activity on your account. Your account access has been limited for security reasons. Click the link below to verify your identity and restore full access:\n\nhttps://secure-bankofamerica.com.verify.net/login\n\nIf you do not verify your account within 24 hours, your account will be suspended.\n\nBank of America Security Team",
-            attachments: [],
-            isPhishing: true,
-            redFlags: [
-              "Suspicious sender email (not the official domain)",
-              "Creates urgency with threat of account suspension",
-              "Link URL doesn't match official bank domain",
-              "Generic greeting ('Valued Customer')"
-            ],
-            explanation: "This is a classic phishing email trying to create urgency to make the recipient act without thinking. The sender's email address uses a domain that looks similar to a legitimate one but isn't the official Bank of America domain. The link also points to a suspicious domain rather than the official bank website."
-          },
-          {
-            id: "email2",
-            title: "Package Delivery",
-            sender: "tracking@fedex.com",
-            subject: "Your package delivery is scheduled",
-            body: "Hello,\n\nYour package #FDX-7829145 is scheduled for delivery today between 2:00 PM and 5:00 PM.\n\nTrack your package: https://www.fedex.com/tracking/7829145\n\nThank you for choosing FedEx.\n\nFedEx Delivery Services",
-            attachments: [],
-            isPhishing: false,
-            explanation: "This is a legitimate email from FedEx. The sender domain is correct, there's no urgent action required, the link goes to the official FedEx website, and the email doesn't ask for personal information. It simply provides tracking information for a package delivery."
-          }
-        ],
-        deepfakeScenarios: [
-          {
-            id: "deepfake1",
-            title: "CEO Video Message",
-            videoUrl: "/videos/ceo_deepfake.mp4",
-            description: "A video message supposedly from your company's CEO asking employees to transfer funds for an urgent acquisition. The CEO mentions that this is confidential and should not be discussed with anyone else in the company.",
-            options: [
-              "Follow the CEO's instructions immediately",
-              "Share the video with colleagues to get their opinion",
-              "Verify the request through official channels before taking action",
-              "Ignore the message as it's probably not important"
-            ],
-            correctAnswer: "Verify the request through official channels before taking action",
-            explanation: "This is a deepfake video using artificial intelligence to impersonate the CEO. The request violates normal financial protocols. Any unusual or high-value financial request should be verified through established channels, even if it appears to come from leadership."
-          }
-        ],
-        voicePhishingScenarios: [
-          {
-            id: "vishing1",
-            title: "IT Support Call",
-            audioUrl: "/audio/it_support_vishing.mp3",
-            transcript: "Hello, this is Jack from IT support. We've detected some suspicious login attempts on your account. I need to verify your identity to secure your account. Could you please confirm your username and current password? This is urgent as someone may be trying to hack into your account right now.",
-            question: "How should you respond to this call?",
-            options: [
-              "Provide your username and password since it's IT support",
-              "Ask for the caller's employee ID and call back the official IT department number",
-              "Share only your username but not your password",
-              "Give them a different password to see if they're legitimate"
-            ],
-            correctAnswer: "Ask for the caller's employee ID and call back the official IT department number",
-            explanation: "This is a voice phishing (vishing) attempt. Legitimate IT staff will never ask for your password. The caller creates a sense of urgency to pressure you into making a quick decision. Instead, you should verify the caller's identity by calling back through official channels."
-          }
-        ],
-        socialMediaScenarios: [
-          {
-            id: "social1",
-            title: "Instagram Quiz App",
-            platform: "Instagram",
-            description: "A friend shared a link to a personality quiz app that asks for Instagram login credentials to 'see which friends match your personality type.' The app promises to analyze your interactions and show compatibility scores.",
-            imageUrl: "/images/instagram_quiz_scam.png",
-            risks: [
-              "Account compromise through credential harvesting",
-              "Access to personal data and contacts",
-              "Potential for spreading malware to contacts",
-              "Permission to post content without your knowledge"
-            ],
-            securitySettings: [
-              { setting: "Third-party app access", recommended: "Disable or strictly limit" },
-              { setting: "Two-factor authentication", recommended: "Enable" },
-              { setting: "Login activity monitoring", recommended: "Enable" }
-            ]
-          }
-        ]
-      },
-      points: 60,
-      order: 3,
       isRequired: true
     }
   ];
@@ -1587,33 +1496,134 @@ db.query(query, [id]);</pre>`
   const level7Activities = [
     {
       levelId: 7,
-      name: 'Malware Types and Behaviors',
-      description: 'Learn about different types of malware and how they operate within systems.',
+      name: 'Malware Types and Analysis',
+      description: 'Learn about different types of malware and basic analysis techniques.',
       type: 'READING' as ActivityType,
       content: {
         sections: [
           {
             title: 'Common Malware Types',
-            content: 'Overview of viruses, worms, trojans, ransomware, spyware, adware, rootkits, and other malicious software.'
+            content: `<p>Malware (malicious software) comes in many forms, each with unique characteristics and behaviors:</p>
+            <ul>
+              <li><strong>Viruses:</strong> Malicious code that attaches to legitimate programs and requires user action to spread. They self-replicate by infecting other files when the infected program runs.</li>
+              <li><strong>Worms:</strong> Self-replicating malware that spreads across networks without requiring user interaction. Unlike viruses, worms don't need to attach to existing programs.</li>
+              <li><strong>Trojans:</strong> Malware disguised as legitimate software that performs malicious actions once installed. Unlike viruses, trojans don't self-replicate but can create backdoors for other malware.</li>
+              <li><strong>Ransomware:</strong> Encrypts victims' files and demands payment (ransom) for the decryption key. Advanced variants like double-extortion ransomware also steal data before encryption and threaten to publish it.</li>
+              <li><strong>Spyware:</strong> Covertly monitors user activity, collecting sensitive information like browsing habits, credentials, or financial data without user consent.</li>
+              <li><strong>Adware:</strong> Displays unwanted advertisements, often by tracking user browsing habits to deliver targeted ads. While less malicious than other types, it can still compromise privacy.</li>
+              <li><strong>Keyloggers:</strong> Records keystrokes to capture passwords, credit card numbers, and other sensitive information typed by users.</li>
+              <li><strong>Rootkits:</strong> Sophisticated tools designed to gain and maintain privileged access to systems while actively hiding their presence from users, security software, and the operating system.</li>
+              <li><strong>Botnets:</strong> Networks of compromised computers controlled remotely by attackers, often used for distributed denial-of-service (DDoS) attacks, spam distribution, or cryptocurrency mining.</li>
+              <li><strong>Fileless Malware:</strong> Operates in memory without writing files to disk, making it difficult to detect using traditional signature-based methods.</li>
+              <li><strong>Polymorphic Malware:</strong> Constantly changes its code to evade detection by signature-based security solutions.</li>
+            </ul>`
           },
           {
             title: 'Malware Infection Vectors',
-            content: 'How malware spreads through phishing, drive-by downloads, infected media, software vulnerabilities, and social engineering.'
+            content: `<p>Malware can infiltrate systems through numerous channels:</p>
+            <ul>
+              <li><strong>Phishing and Social Engineering:</strong> Tricking users into downloading malware through deceptive emails, messages, or websites. Often the entry point for high-profile attacks.</li>
+              <li><strong>Drive-by Downloads:</strong> Malware that installs automatically when visiting compromised or malicious websites, often exploiting browser or plugin vulnerabilities without user awareness.</li>
+              <li><strong>Infected Removable Media:</strong> USB drives, external hard drives, or other removable storage containing malware that activates when connected.</li>
+              <li><strong>Software Vulnerabilities:</strong> Exploiting unpatched security flaws in operating systems, applications, or firmware to gain unauthorized access.</li>
+              <li><strong>Malvertising:</strong> Malicious code embedded within online advertisements that can infect systems even on legitimate websites.</li>
+              <li><strong>Compromised Software Downloads:</strong> Legitimate software that has been tampered with to include malware, including unofficial software from untrusted sources.</li>
+              <li><strong>Supply Chain Attacks:</strong> Compromising trusted software vendors to distribute malware through legitimate update channels.</li>
+              <li><strong>Remote Desktop Protocol (RDP) Exploitation:</strong> Brute-forcing or exploiting vulnerabilities in remote access services.</li>
+              <li><strong>Watering Hole Attacks:</strong> Compromising specific websites frequently visited by the target group.</li>
+            </ul>
+            <p>Understanding infection vectors is crucial for implementing effective preventative security measures and conducting proper incident response.</p>`
           },
           {
             title: 'Malware Behavior Analysis',
-            content: 'Techniques for analyzing malware behavior including sandbox analysis, network traffic monitoring, and memory forensics.'
+            content: `<p>Analyzing malware behavior involves several complementary techniques:</p>
+            <ul>
+              <li><strong>Static Analysis:</strong> Examining malware without executing it, including:
+                <ul>
+                  <li>File format analysis</li>
+                  <li>String extraction to find embedded URLs, IP addresses, or commands</li>
+                  <li>Disassembly to review assembly code</li>
+                  <li>Header analysis to identify compilation information</li>
+                  <li>Hash calculation for identification</li>
+                </ul>
+              </li>
+              <li><strong>Dynamic Analysis:</strong> Observing malware behavior during execution in isolated environments:
+                <ul>
+                  <li><strong>Sandboxing:</strong> Running malware in controlled environments to observe behavior safely</li>
+                  <li><strong>API Call Monitoring:</strong> Tracking system and library function calls made by the malware</li>
+                  <li><strong>Network Traffic Analysis:</strong> Monitoring communications to identify command and control servers or data exfiltration</li>
+                  <li><strong>Memory Forensics:</strong> Analyzing runtime memory to detect hidden processes, code injection, and other stealth techniques</li>
+                  <li><strong>Registry Modifications:</strong> Tracking changes to the system registry</li>
+                </ul>
+              </li>
+            </ul>`
+          },
+          {
+            title: 'Advanced Malware Evasion Techniques',
+            content: `<p>Modern malware employs sophisticated techniques to avoid detection:</p>
+            <ul>
+              <li><strong>Anti-VM and Anti-Sandbox:</strong> Detecting virtualized or sandbox environments and changing behavior or refusing to execute</li>
+              <li><strong>Obfuscation:</strong> Encoding or encrypting code to make static analysis difficult</li>
+              <li><strong>Polymorphism:</strong> Continuously changing code signatures while maintaining functionality</li>
+              <li><strong>Metamorphism:</strong> Completely rewriting code while maintaining the same functionality</li>
+              <li><strong>Fileless Techniques:</strong> Operating entirely in memory without writing to disk</li>
+              <li><strong>Living-off-the-Land:</strong> Using legitimate system tools and processes to blend in with normal activity</li>
+              <li><strong>Timestomping:</strong> Modifying file metadata to avoid detection based on creation or modification times</li>
+              <li><strong>Process Injection:</strong> Inserting malicious code into legitimate running processes</li>
+            </ul>
+            <p>Understanding these evasion techniques is essential for developing effective detection strategies.</p>`
+          },
+          {
+            title: 'Malware Analysis Tools and Platforms',
+            content: `<p>A variety of specialized tools support malware analysis:</p>
+            <ul>
+              <li><strong>Automated Analysis Platforms:</strong>
+                <ul>
+                  <li>VirusTotal - Multi-engine scanning and preliminary analysis</li>
+                  <li>ANY.RUN - Interactive malware analysis service</li>
+                  <li>Cuckoo Sandbox - Open source automated analysis system</li>
+                  <li>Joe Sandbox - Advanced malware analysis platform</li>
+                </ul>
+              </li>
+              <li><strong>Disassemblers and Decompilers:</strong>
+                <ul>
+                  <li>IDA Pro - Interactive disassembler for software analysis</li>
+                  <li>Ghidra - NSA-developed software reverse engineering tool</li>
+                  <li>Radare2 - Open source disassembler and analyzer</li>
+                </ul>
+              </li>
+              <li><strong>Debugging Tools:</strong>
+                <ul>
+                  <li>OllyDbg - x86 debugger for Windows</li>
+                  <li>WinDbg - Windows debugger</li>
+                  <li>GDB - GNU Project debugger</li>
+                </ul>
+              </li>
+              <li><strong>Network Analysis:</strong>
+                <ul>
+                  <li>Wireshark - Network protocol analyzer</li>
+                  <li>NetworkMiner - Network forensic analysis tool</li>
+                </ul>
+              </li>
+              <li><strong>Memory Analysis:</strong>
+                <ul>
+                  <li>Volatility - Memory forensics framework</li>
+                  <li>Rekall - Memory analysis framework</li>
+                </ul>
+              </li>
+            </ul>
+            <p>Effective malware analysis requires a combination of tools and methodologies tailored to the specific sample being investigated.</p>`
           }
         ]
       },
-      points: 30,
+      points: 60,
       order: 1,
       isRequired: true
     },
     {
       levelId: 7,
-      name: 'Malware Indicators Quiz',
-      description: 'Test your knowledge of malware indicators and infection symptoms.',
+      name: 'Malware Detection Quiz',
+      description: 'Test your knowledge of malware indicators and detection methods.',
       type: 'QUIZ' as ActivityType,
       content: {
         questions: [
@@ -1649,14 +1659,14 @@ db.query(query, [id]);</pre>`
           }
         ]
       },
-      points: 40,
+      points: 70,
       order: 2,
       isRequired: true
     },
     {
       levelId: 7,
       name: 'Malware Analysis Lab',
-      description: 'Analyze malware samples to identify behaviors, classify the threats, and determine appropriate responses.',
+      description: 'Practice analyzing malware behavior in a safe environment.',
       type: 'LAB' as ActivityType,
       content: {
         title: 'Malware Analysis Lab',
@@ -1735,7 +1745,7 @@ db.query(query, [id]);</pre>`
           }
         ]
       },
-      points: 60,
+      points: 70,
       order: 3,
       isRequired: true
     }
@@ -1775,7 +1785,7 @@ db.query(query, [id]);</pre>`
     {
       levelId: 8,
       name: 'Digital Forensics Fundamentals',
-      description: 'Learn about the principles and methodologies of digital forensics investigations.',
+      description: 'Learn about digital forensics principles, tools, and methodologies.',
       type: 'READING' as ActivityType,
       content: {
         sections: [
@@ -1793,19 +1803,24 @@ db.query(query, [id]);</pre>`
           }
         ]
       },
-      points: 30,
+      points: 60,
       order: 1,
       isRequired: true
     },
     {
       levelId: 8,
-      name: 'Forensic Analysis Quiz',
-      description: 'Test your knowledge of digital forensics principles and techniques.',
+      name: 'Evidence Collection Quiz',
+      description: 'Test your knowledge of proper evidence collection and preservation techniques.',
       type: 'QUIZ' as ActivityType,
       content: {
         questions: [
           {
-            question: 'What is the primary purpose of creating a forensic image?',
+            question: 'Which of the following is NOT a common digital forensics tool?',
+            options: ['Wireshark', 'FTK', 'EnCase', 'Cellebrite'],
+            correctAnswer: 'Cellebrite'
+          },
+          {
+            question: 'What is the primary purpose of a forensic image?',
             options: [
               'To save storage space',
               'To preserve the original evidence in an unaltered state',
@@ -1823,33 +1838,23 @@ db.query(query, [id]);</pre>`
               'Examining clipboard contents'
             ],
             correctAnswer: 'Recovering deleted files from a hard drive'
-          },
-          {
-            question: 'What is a write blocker used for in digital forensics?',
-            options: [
-              'To prevent unauthorized access to evidence',
-              'To block malicious software from executing',
-              'To prevent changes to the original evidence during examination',
-              'To restrict writing investigation reports'
-            ],
-            correctAnswer: 'To prevent changes to the original evidence during examination'
           }
         ]
       },
-      points: 40,
+      points: 70,
       order: 2,
       isRequired: true
     },
     {
       levelId: 8,
-      name: 'Digital Forensics Lab',
-      description: 'Practice digital forensics techniques including disk imaging, data recovery, and timeline analysis.',
+      name: 'Digital Evidence Analysis Lab',
+      description: 'Practice analyzing digital evidence to reconstruct events and identify perpetrators.',
       type: 'LAB' as ActivityType,
       content: {
-        title: 'Digital Forensics Lab',
+        title: 'Digital Evidence Analysis Lab',
         description: 'Practice digital forensics techniques and evidence collection.'
       },
-      points: 60,
+      points: 70,
       order: 3,
       isRequired: true
     }
@@ -1859,33 +1864,219 @@ db.query(query, [id]);</pre>`
   const level9Activities = [
     {
       levelId: 9,
-      name: 'Incident Response Framework',
-      description: 'Learn about the NIST incident response lifecycle and key components of an incident response plan.',
+      name: 'Incident Response Fundamentals',
+      description: 'Learn about incident response frameworks and strategies for managing security incidents.',
       type: 'READING' as ActivityType,
       content: {
         sections: [
           {
             title: 'Incident Response Lifecycle',
-            content: 'Overview of the preparation, detection and analysis, containment, eradication, recovery, and post-incident activity phases.'
+            content: `<p>The incident response lifecycle is a structured approach to handling security incidents effectively:</p>
+            <ol>
+              <li><strong>Preparation:</strong> Establishing an incident response team, developing policies and procedures, implementing necessary tools, and conducting training and exercises. Key elements include:
+                <ul>
+                  <li>Creating an incident response plan with clear roles and responsibilities</li>
+                  <li>Developing communication protocols for internal and external stakeholders</li>
+                  <li>Implementing security monitoring and logging capabilities</li>
+                  <li>Conducting regular tabletop exercises and simulations</li>
+                  <li>Establishing relationships with law enforcement, legal counsel, and PR teams</li>
+                </ul>
+              </li>
+              <li><strong>Detection and Analysis:</strong> Identifying and investigating potential security incidents to determine their scope, impact, and root cause. Activities include:
+                <ul>
+                  <li>Monitoring security alerts from SIEM, IDS/IPS, EDR, and other security tools</li>
+                  <li>Analyzing logs and network traffic for signs of compromise</li>
+                  <li>Performing forensic analysis of affected systems</li>
+                  <li>Creating and testing hypotheses about attack vectors and techniques</li>
+                  <li>Establishing a timeline of events and identifying affected assets</li>
+                </ul>
+              </li>
+              <li><strong>Containment:</strong> Implementing short-term and long-term measures to limit the damage and prevent further spread of the incident. Strategies include:
+                <ul>
+                  <li>Short-term containment: Immediate actions to prevent further damage (network isolation, account lockdowns)</li>
+                  <li>System backup: Preserving evidence for later analysis</li>
+                  <li>Long-term containment: Implementing temporary fixes to allow systems to be used in production while rebuilding clean systems</li>
+                </ul>
+              </li>
+              <li><strong>Eradication:</strong> Removing the cause of the incident and securing systems against similar attacks. Activities include:
+                <ul>
+                  <li>Removing malware and compromised accounts</li>
+                  <li>Patching vulnerabilities that were exploited</li>
+                  <li>Implementing additional security controls</li>
+                  <li>Conducting vulnerability scans and penetration tests</li>
+                </ul>
+              </li>
+              <li><strong>Recovery:</strong> Restoring affected systems to normal operation and validating their security. Steps include:
+                <ul>
+                  <li>Restoring systems from clean backups</li>
+                  <li>Rebuilding systems from scratch when necessary</li>
+                  <li>Implementing additional monitoring</li>
+                  <li>Performing verification testing to ensure security</li>
+                  <li>Gradually returning systems to production with careful monitoring</li>
+                </ul>
+              </li>
+              <li><strong>Post-Incident Activity:</strong> Learning from the incident and improving future response capabilities. Activities include:
+                <ul>
+                  <li>Conducting a detailed post-mortem analysis</li>
+                  <li>Documenting lessons learned</li>
+                  <li>Updating incident response procedures based on findings</li>
+                  <li>Implementing additional security controls to prevent similar incidents</li>
+                  <li>Sharing relevant information with the security community when appropriate</li>
+                </ul>
+              </li>
+            </ol>
+            <p>This cyclical process ensures continuous improvement of security posture and incident response capabilities.</p>`
           },
           {
             title: 'Incident Response Planning',
-            content: 'Key components of an effective incident response plan and the importance of regular testing and updates.'
+            content: `<p><strong>Components of an Effective Incident Response Plan:</strong></p>
+            <ul>
+              <li><strong>Incident Response Team Structure:</strong> Define team members, roles, responsibilities, and escalation paths</li>
+              <li><strong>Communication Protocols:</strong> Establish internal and external communication procedures, including:
+                <ul>
+                  <li>Who to notify and when (executives, legal, PR, customers, regulators)</li>
+                  <li>Templates for different types of notifications</li>
+                  <li>Secure communication channels</li>
+                  <li>Single point of contact to avoid conflicting messages</li>
+                </ul>
+              </li>
+              <li><strong>Incident Severity Matrix:</strong> Define criteria for classifying incidents by severity and impact</li>
+              <li><strong>Response Procedures:</strong> Detailed step-by-step procedures for different types of incidents:
+                <ul>
+                  <li>Malware infections</li>
+                  <li>Data breaches</li>
+                  <li>Ransomware attacks</li>
+                  <li>DDoS attacks</li>
+                  <li>Insider threats</li>
+                </ul>
+              </li>
+              <li><strong>Documentation Requirements:</strong> Templates and procedures for incident documentation</li>
+              <li><strong>Legal and Regulatory Considerations:</strong> Guidelines for compliance with:
+                <ul>
+                  <li>Data breach notification laws</li>
+                  <li>Industry-specific regulations</li>
+                  <li>Chain of custody procedures for evidence</li>
+                </ul>
+              </li>
+              <li><strong>Disaster Recovery Integration:</strong> Coordination with business continuity and disaster recovery plans</li>
+            </ul>
+            <p><strong>Testing and Updating:</strong></p>
+            <ul>
+              <li><strong>Tabletop Exercises:</strong> Discussion-based simulations of incident scenarios</li>
+              <li><strong>Functional Exercises:</strong> Testing specific components of the plan in controlled environments</li>
+              <li><strong>Full-Scale Simulations:</strong> Comprehensive exercises that test the entire incident response process</li>
+              <li><strong>Regular Reviews:</strong> Scheduled updates based on:
+                <ul>
+                  <li>Lessons learned from incidents and exercises</li>
+                  <li>Changes in the organization's IT infrastructure</li>
+                  <li>Emerging threats and vulnerabilities</li>
+                  <li>Regulatory changes</li>
+                </ul>
+              </li>
+            </ul>
+            <p>An effective incident response plan is not a static document but a living framework that evolves with the organization's security needs and threat landscape.</p>`
           },
           {
             title: 'Incident Classification',
-            content: 'How to classify security incidents by type, severity, and impact to prioritize response efforts.'
+            content: `<p>Proper classification helps prioritize response efforts and allocate resources effectively:</p>
+            <p><strong>By Type:</strong></p>
+            <ul>
+              <li><strong>Network Intrusions:</strong> Unauthorized access to systems or networks</li>
+              <li><strong>Malware Infections:</strong> Viruses, worms, trojans, ransomware, etc.</li>
+              <li><strong>Denial of Service:</strong> Attacks that disrupt service availability</li>
+              <li><strong>Unauthorized Access:</strong> Credential compromise or privilege escalation</li>
+              <li><strong>Data Breaches:</strong> Unauthorized disclosure of sensitive information</li>
+              <li><strong>Social Engineering:</strong> Phishing, pretexting, and other manipulation tactics</li>
+              <li><strong>Insider Threats:</strong> Malicious or negligent actions by authorized users</li>
+              <li><strong>Physical Security:</strong> Unauthorized physical access to facilities or assets</li>
+            </ul>
+            <p><strong>By Severity:</strong></p>
+            <table border="1" style="border-collapse: collapse; width: 100%;">
+              <tr>
+                <th>Level</th>
+                <th>Description</th>
+                <th>Example</th>
+                <th>Response Time</th>
+              </tr>
+              <tr>
+                <td>Critical</td>
+                <td>Significant impact on critical systems or sensitive data with imminent risk of harm</td>
+                <td>Active ransomware attack encrypting production systems</td>
+                <td>Immediate (minutes)</td>
+              </tr>
+              <tr>
+                <td>High</td>
+                <td>Significant impact or potential for harm to important systems or data</td>
+                <td>Confirmed compromise of privileged user account</td>
+                <td>Urgent (within hours)</td>
+              </tr>
+              <tr>
+                <td>Medium</td>
+                <td>Limited impact or contained threat with potential to escalate</td>
+                <td>Malware detected and quarantined on a single non-critical system</td>
+                <td>Priority (within 24 hours)</td>
+              </tr>
+              <tr>
+                <td>Low</td>
+                <td>Minimal impact with little potential for harm</td>
+                <td>Suspicious email reported but not clicked</td>
+                <td>Scheduled (within days)</td>
+              </tr>
+            </table>
+            <p><strong>By Impact:</strong></p>
+            <ul>
+              <li><strong>Operational Impact:</strong> Effect on business operations and processes</li>
+              <li><strong>Financial Impact:</strong> Direct costs and potential financial losses</li>
+              <li><strong>Reputational Impact:</strong> Damage to brand and customer trust</li>
+              <li><strong>Regulatory Impact:</strong> Potential compliance violations and legal consequences</li>
+              <li><strong>Data Impact:</strong> Type and amount of data affected (PII, PHI, financial, etc.)</li>
+            </ul>
+            <p>Effective incident classification should be documented in a matrix that guides the incident response team in assessing and prioritizing incidents consistently.</p>`
+          },
+          {
+            title: 'Incident Response Tools and Technologies',
+            content: `<p>Modern incident response relies on various specialized tools and technologies:</p>
+            <ul>
+              <li><strong>Security Information and Event Management (SIEM):</strong> Centralized logging and correlation of security events</li>
+              <li><strong>Endpoint Detection and Response (EDR):</strong> Advanced endpoint monitoring and threat detection</li>
+              <li><strong>Network Traffic Analysis (NTA):</strong> Monitoring and analyzing network traffic for suspicious patterns</li>
+              <li><strong>Digital Forensics Tools:</strong>
+                <ul>
+                  <li>Disk imaging and analysis software</li>
+                  <li>Memory forensics tools</li>
+                  <li>Log analysis utilities</li>
+                  <li>Forensic file recovery</li>
+                </ul>
+              </li>
+              <li><strong>Threat Intelligence Platforms:</strong> Integration of external threat data with internal security monitoring</li>
+              <li><strong>Security Orchestration, Automation, and Response (SOAR):</strong> Automation of incident response workflows</li>
+              <li><strong>Incident Management Systems:</strong> Tracking and documentation of incident response activities</li>
+              <li><strong>Communication Tools:</strong> Secure messaging and collaboration platforms for the incident response team</li>
+            </ul>
+            <p>Effective incident response requires not just the right tools but also skilled personnel who know how to use them appropriately during an incident.</p>`
+          },
+          {
+            title: 'Incident Response Frameworks and Standards',
+            content: `<p>Several established frameworks provide guidance for incident response:</p>
+            <ul>
+              <li><strong>NIST SP 800-61:</strong> Computer Security Incident Handling Guide - Comprehensive framework from the National Institute of Standards and Technology</li>
+              <li><strong>SANS Incident Handler's Handbook:</strong> Practical guide for incident response planning and execution</li>
+              <li><strong>ISO/IEC 27035:</strong> International standard for information security incident management</li>
+              <li><strong>FIRST CSIRT Framework:</strong> Common framework for Computer Security Incident Response Teams</li>
+              <li><strong>MITRE ATT&CK Framework:</strong> Knowledge base of adversary tactics and techniques to inform detection and response</li>
+            </ul>
+            <p>These frameworks provide proven methodologies and best practices that organizations can adapt to their specific needs and resources.</p>`
           }
         ]
       },
-      points: 30,
+      points: 70,
       order: 1,
       isRequired: true
     },
     {
       levelId: 9,
-      name: 'Incident Response Quiz',
-      description: 'Test your knowledge of incident response procedures and best practices.',
+      name: 'Incident Classification Quiz',
+      description: 'Test your knowledge of incident types, severity levels, and appropriate response actions.',
       type: 'QUIZ' as ActivityType,
       content: {
         questions: [
@@ -1921,77 +2112,91 @@ db.query(query, [id]);</pre>`
           }
         ]
       },
-      points: 40,
+      points: 70,
       order: 2,
       isRequired: true
     },
     {
       levelId: 9,
-      name: 'Incident Response Lab',
-      description: 'Practice incident response procedures including log analysis, breach containment, and playbook development.',
-      type: 'LAB' as ActivityType,
+      name: 'Incident Response Simulation',
+      description: 'Practice responding to simulated security incidents using industry-standard frameworks.',
+      type: 'SIMULATION' as ActivityType,
       content: {
-        title: 'Incident Response Lab',
-        description: 'Practice incident response procedures and decision-making.',
-        logs: [
-          {
-            id: "log1",
-            timestamp: "2023-06-15 02:34:17",
-            source: "firewall",
-            level: "warning",
-            message: "Multiple failed SSH login attempts from IP 45.142.120.63 to 192.168.1.10",
-            relevance: true
-          },
-          {
-            id: "log2",
-            timestamp: "2023-06-15 02:36:42",
-            source: "firewall",
-            level: "info",
-            message: "Successful SSH login from IP 45.142.120.63 to 192.168.1.10",
-            relevance: true
-          },
-          {
-            id: "log3",
-            timestamp: "2023-06-15 02:37:15",
-            source: "system",
-            level: "info",
-            message: "User 'root' logged in from 45.142.120.63",
-            relevance: true
-          }
-        ],
-        containmentScenarios: [
+        title: 'Incident Response Simulation',
+        description: 'Simulate a real-world incident response scenario to test your incident response team\'s effectiveness.',
+        instructions: '<p>In this simulation, you will be placed in a situation where a security incident has occurred. Your task is to:</p><ol><li>Identify the incident type and severity</li><li>Determine the appropriate response actions</li><li>Implement the response actions</li><li>Document the incident and lessons learned</li></ol>',
+        setupGuide: '<p>This simulation is based on a real-world scenario. You will receive a scenario description and a set of instructions. Your team will have 24 hours to respond to the incident.</p>',
+        scenarios: [
           {
             id: "scenario1",
-            title: "Ransomware Detected",
-            description: "Ransomware has been detected on a workstation in the finance department. Files are being encrypted, and the malware is attempting to spread to network shares.",
-            actions: [
-              { id: "a1", name: "Disconnect the machine from the network", description: "Immediately remove the infected machine from the network to prevent spread" },
-              { id: "a2", name: "Run anti-virus scan", description: "Launch a full system scan using installed anti-virus software" },
-              { id: "a3", name: "Restart the machine", description: "Reboot the system to try to clear the infection" }
-            ],
-            correctAction: "a1",
-            solution: "Disconnecting the machine from the network is the best immediate action to prevent the ransomware from spreading to other systems or encrypting network shares. After isolation, you can proceed with analysis and recovery steps."
-          }
-        ],
-        playbooks: [
+            name: "Ransomware Attack",
+            description: "Your organization has been hit by a ransomware attack. Files are being encrypted, and the malware is attempting to spread to network shares.",
+            difficulty: "Medium",
+            solution: `<p><strong>Solution Guide:</strong></p>
+            <ol>
+              <li>Isolate the infected systems immediately</li>
+              <li>Run anti-virus scans on all systems</li>
+              <li>Identify and block the source of the attack</li>
+              <li>Restore encrypted files using a backup</li>
+              <li>Implement network segmentation to prevent further spread</li>
+              <li>Notify affected parties and stakeholders</li>
+              <li>Document the incident and lessons learned</li>
+            </ol>
+            <p><strong>Key Observations:</strong></p>
+            <ul>
+              <li>The ransomware is encrypting files on multiple systems</li>
+              <li>The attacker is using a known encryption algorithm</li>
+              <li>The ransom note is left on the desktop of affected systems</li>
+              <li>The attacker is using a command and control server to communicate</li>
+            </ul>
+            <p><strong>Security Lessons:</strong></p>
+            <ul>
+              <li>Regularly test your incident response plan</li>
+              <li>Have a clear communication plan for affected parties</li>
+              <li>Implement network segmentation to limit the impact of an attack</li>
+              <li>Use encryption to protect sensitive data</li>
+              <li>Regularly update your security tools and software</li>
+            </ul>
+            <p><strong>Real-world Example:</strong></p>
+            <p>In 2017, the WannaCry ransomware attack affected hundreds of thousands of systems worldwide. The attackers used a vulnerability in Microsoft Windows to spread the ransomware, and the attack was stopped after a few days when a patch was released.</p>`
+          },
           {
-            id: "playbook1",
-            name: "Data Breach Response",
-            steps: [
-              { id: "step1", action: "Verify the breach has occurred", order: 1 },
-              { id: "step2", action: "Assemble the incident response team", order: 2 },
-              { id: "step3", action: "Contain affected systems", order: 3 },
-              { id: "step4", action: "Assess scope and impact", order: 4 },
-              { id: "step5", action: "Eradicate the threat", order: 5 },
-              { id: "step6", action: "Recover systems and data", order: 6 },
-              { id: "step7", action: "Notify affected parties", order: 7 },
-              { id: "step8", action: "Document the incident", order: 8 }
-            ],
-            correctOrder: ["step1", "step2", "step3", "step4", "step5", "step6", "step7", "step8"]
+            id: "scenario2",
+            name: "Data Breach",
+            description: "Your organization's database has been breached. Sensitive data has been stolen, and the attackers have left a ransom note demanding a large sum of money for the decryption key.",
+            difficulty: "Hard",
+            solution: `<p><strong>Solution Guide:</strong></p>
+            <ol>
+              <li>Contain the breach immediately</li>
+              <li>Identify the compromised data and its sensitivity</li>
+              <li>Notify affected individuals and authorities</li>
+              <li>Implement a data breach response plan</li>
+              <li>Investigate the breach and identify the attacker</li>
+              <li>Secure the compromised systems and data</li>
+              <li>Notify stakeholders and customers</li>
+              <li>Document the incident and lessons learned</li>
+            </ol>
+            <p><strong>Key Observations:</strong></p>
+            <ul>
+              <li>The attackers have stolen sensitive data from multiple systems</li>
+              <li>The data includes financial information, personal data, and intellectual property</li>
+              <li>The attackers have left a ransom note demanding a large sum of money</li>
+              <li>The attackers have used a known encryption algorithm to encrypt the data</li>
+            </ul>
+            <p><strong>Security Lessons:</strong></p>
+            <ul>
+              <li>Regularly test your incident response plan</li>
+              <li>Have a clear communication plan for affected parties</li>
+              <li>Implement network segmentation to limit the impact of an attack</li>
+              <li>Use encryption to protect sensitive data</li>
+              <li>Regularly update your security tools and software</li>
+            </ul>
+            <p><strong>Real-world Example:</strong></p>
+            <p>In 2013, the Target Corporation suffered a data breach that affected 110 million customers. The attackers gained access to the company's point-of-sale systems through a third-party vendor's network, and the breach was not discovered for several weeks.</p>`
           }
         ]
       },
-      points: 60,
+      points: 80,
       order: 3,
       isRequired: true
     }
@@ -2001,33 +2206,321 @@ db.query(query, [id]);</pre>`
   const level10Activities = [
     {
       levelId: 10,
-      name: 'APT Tactics and Techniques',
-      description: 'Learn about the advanced tactics, techniques, and procedures used by sophisticated threat actors.',
+      name: 'Advanced Persistent Threats',
+      description: 'Learn about sophisticated threat actors, their techniques, and long-term attack strategies.',
       type: 'READING' as ActivityType,
       content: {
         sections: [
           {
             title: 'APT Lifecycle',
-            content: 'Overview of the typical APT attack lifecycle including initial access, persistence, privilege escalation, lateral movement, and data exfiltration.'
+            content: `<p>Advanced Persistent Threats (APTs) are sophisticated, sustained cyber attacks that follow a structured attack lifecycle:</p>
+            <ol>
+              <li><strong>Initial Reconnaissance:</strong> Gathering information about the target organization:
+                <ul>
+                  <li>Identifying high-value targets and entry points</li>
+                  <li>Mapping organizational structure and relationships</li>
+                  <li>Discovering technical infrastructure and security controls</li>
+                  <li>Open-source intelligence (OSINT) gathering</li>
+                  <li>Social media analysis of key personnel</li>
+                </ul>
+              </li>
+              <li><strong>Initial Compromise:</strong> Gaining initial access to the target environment:
+                <ul>
+                  <li>Spear phishing with malicious attachments or links</li>
+                  <li>Watering hole attacks (compromising websites frequented by targets)</li>
+                  <li>Supply chain compromises</li>
+                  <li>Zero-day exploits against vulnerable systems</li>
+                  <li>Social engineering and physical access methods</li>
+                </ul>
+              </li>
+              <li><strong>Establish Foothold:</strong> Securing reliable access to the compromised system:
+                <ul>
+                  <li>Installing backdoors or remote access trojans (RATs)</li>
+                  <li>Setting up command & control (C2) channels</li>
+                  <li>Ensuring persistence mechanisms survive system reboots</li>
+                  <li>Deploying multiple access methods as contingencies</li>
+                </ul>
+              </li>
+              <li><strong>Privilege Escalation:</strong> Gaining higher-level permissions:
+                <ul>
+                  <li>Exploiting local vulnerabilities</li>
+                  <li>Password harvesting and credential theft</li>
+                  <li>Access token manipulation</li>
+                  <li>Abusing misconfigurations or overly permissive access rights</li>
+                </ul>
+              </li>
+              <li><strong>Internal Reconnaissance:</strong> Mapping the internal network:
+                <ul>
+                  <li>Network scanning and enumeration</li>
+                  <li>Active Directory environment mapping</li>
+                  <li>Identifying high-value assets and data repositories</li>
+                  <li>Understanding security controls and monitoring solutions</li>
+                </ul>
+              </li>
+              <li><strong>Lateral Movement:</strong> Expanding access across the environment:
+                <ul>
+                  <li>Pass-the-hash/pass-the-ticket techniques</li>
+                  <li>Remote service exploitation</li>
+                  <li>Use of legitimate administrative tools (living off the land)</li>
+                  <li>Trusted relationship exploitation</li>
+                </ul>
+              </li>
+              <li><strong>Data Collection:</strong> Identifying and gathering target data:
+                <ul>
+                  <li>Locating valuable intellectual property, business plans, or sensitive data</li>
+                  <li>Database queries and file system scanning</li>
+                  <li>Email archive access</li>
+                  <li>Screen captures and keylogging</li>
+                </ul>
+              </li>
+              <li><strong>Data Exfiltration:</strong> Transferring stolen data outside the network:
+                <ul>
+                  <li>Encrypted tunnels and covert channels</li>
+                  <li>Steganography to hide data within legitimate traffic</li>
+                  <li>Using legitimate cloud services for exfiltration</li>
+                  <li>Timing operations during periods of reduced monitoring</li>
+                </ul>
+              </li>
+              <li><strong>Maintaining Presence:</strong> Ensuring long-term access:
+                <ul>
+                  <li>Establishing multiple persistence mechanisms</li>
+                  <li>Regularly rotating infrastructure and communication channels</li>
+                  <li>Adapting tactics to evade detection</li>
+                  <li>Implementing dormant backdoors that activate periodically</li>
+                </ul>
+              </li>
+            </ol>
+            <p>Unlike opportunistic attacks, APTs follow this methodical approach to achieve specific objectives while maintaining a low profile over an extended period—sometimes months or years.</p>`
+          },
+          {
+            title: 'APT Threat Actors and Motivations',
+            content: `<p>APT attacks are conducted by sophisticated threat actors with specific objectives:</p>
+            <p><strong>State-Sponsored Groups:</strong></p>
+            <ul>
+              <li><strong>Motivations:</strong>
+                <ul>
+                  <li>Espionage and intelligence gathering</li>
+                  <li>Intellectual property theft for economic advantage</li>
+                  <li>Critical infrastructure compromise for potential sabotage</li>
+                  <li>Political advantage and influence operations</li>
+                </ul>
+              </li>
+              <li><strong>Characteristics:</strong>
+                <ul>
+                  <li>Extensive resources and funding</li>
+                  <li>Advanced technical capabilities</li>
+                  <li>Sophisticated operational security</li>
+                  <li>Long-term strategic objectives</li>
+                </ul>
+              </li>
+            </ul>
+            <p><strong>Organized Criminal Groups:</strong></p>
+            <ul>
+              <li><strong>Motivations:</strong>
+                <ul>
+                  <li>Financial gain through theft or extortion</li>
+                  <li>Ransomware deployment targeting high-value organizations</li>
+                  <li>Banking fraud and cryptocurrency theft</li>
+                  <li>Theft of financial data or personal information for resale</li>
+                </ul>
+              </li>
+              <li><strong>Characteristics:</strong>
+                <ul>
+                  <li>Business-like operational structure</li>
+                  <li>Focus on monetization and return on investment</li>
+                  <li>Increasingly sophisticated technical capabilities</li>
+                  <li>May collaborate with other criminal entities or state actors</li>
+                </ul>
+              </li>
+            </ul>
+            <p><strong>Hacktivists and Ideologically Motivated Groups:</strong></p>
+            <ul>
+              <li><strong>Motivations:</strong>
+                <ul>
+                  <li>Political or ideological objectives</li>
+                  <li>Bringing attention to specific causes</li>
+                  <li>Embarrassing targeted organizations</li>
+                </ul>
+              </li>
+              <li><strong>Characteristics:</strong>
+                <ul>
+                  <li>Variable technical capabilities</li>
+                  <li>Often more interested in publicity than stealth</li>
+                  <li>May be less persistent than state-sponsored actors</li>
+                </ul>
+              </li>
+            </ul>
+            <p><strong>Insider Threats:</strong></p>
+            <ul>
+              <li><strong>Motivations:</strong>
+                <ul>
+                  <li>Financial gain</li>
+                  <li>Revenge or grievances</li>
+                  <li>Ideological reasons</li>
+                  <li>Coercion by external actors</li>
+                </ul>
+              </li>
+              <li><strong>Characteristics:</strong>
+                <ul>
+                  <li>Legitimate access to systems and data</li>
+                  <li>Detailed knowledge of internal security controls</li>
+                  <li>May operate over extended periods</li>
+                </ul>
+              </li>
+            </ul>
+            <p>Understanding the threat actors behind APTs helps organizations anticipate their tactics, techniques, and procedures (TTPs) and prioritize defensive measures.</p>`
           },
           {
             title: 'Attribution Challenges',
-            content: 'The challenges of attributing APT attacks to specific threat actors and nation-states.'
+            content: `<p>Attributing APT attacks to specific threat actors presents numerous challenges:</p>
+            <ul>
+              <li><strong>Technical Obfuscation:</strong>
+                <ul>
+                  <li>Use of proxies, VPNs, and compromised infrastructure</li>
+                  <li>Tor network and other anonymizing technologies</li>
+                  <li>Time zone manipulation to confuse analysis</li>
+                  <li>Code reuse and sharing between different groups</li>
+                </ul>
+              </li>
+              <li><strong>False Flag Operations:</strong>
+                <ul>
+                  <li>Deliberate use of another group's tools, techniques, or infrastructure</li>
+                  <li>Planting misleading artifacts or language indicators</li>
+                  <li>Mimicking the operational patterns of other known threat actors</li>
+                </ul>
+              </li>
+              <li><strong>Operational Security:</strong>
+                <ul>
+                  <li>Careful infrastructure management to avoid patterns</li>
+                  <li>Use of legitimate tools that blend with normal activity</li>
+                  <li>Custom malware developed for specific operations</li>
+                  <li>Strict compartmentalization of operations</li>
+                </ul>
+              </li>
+              <li><strong>Attribution Methodology Challenges:</strong>
+                <ul>
+                  <li>Over-reliance on technical indicators that can be falsified</li>
+                  <li>Confirmation bias in analysis</li>
+                  <li>Incomplete visibility into attack infrastructure</li>
+                  <li>Political pressure to attribute to specific actors</li>
+                </ul>
+              </li>
+              <li><strong>Legal and Policy Implications:</strong>
+                <ul>
+                  <li>High standard of proof required for formal attribution</li>
+                  <li>Diplomatic sensitivities and international relations</li>
+                  <li>Reluctance to reveal intelligence sources and methods</li>
+                </ul>
+              </li>
+            </ul>
+            <p><strong>The Diamond Model for Attribution:</strong></p>
+            <p>A structured approach to attribution that considers four key elements:</p>
+            <ul>
+              <li><strong>Adversary:</strong> The threat actor behind the attack</li>
+              <li><strong>Capability:</strong> Tools, techniques, and procedures used</li>
+              <li><strong>Infrastructure:</strong> Systems and networks used to conduct the attack</li>
+              <li><strong>Victim:</strong> The targeted organization and assets</li>
+            </ul>
+            <p>Effective attribution often requires collaboration between technical analysts, intelligence services, and law enforcement agencies, combining technical evidence with human intelligence and geopolitical context.</p>`
           },
           {
             title: 'Defense Strategies',
-            content: 'Advanced defense strategies against sophisticated threat actors including threat hunting and intelligence-driven security.'
+            content: `<p>Defending against APTs requires a comprehensive, layered approach focused on detection, prevention, and resilience:</p>
+            <p><strong>Threat Intelligence Integration:</strong></p>
+            <ul>
+              <li>Consuming and operationalizing tactical, operational, and strategic threat intelligence</li>
+              <li>Tracking known APT group TTPs using frameworks like MITRE ATT&CK</li>
+              <li>Participating in information sharing communities and ISACs</li>
+              <li>Developing industry-specific intelligence relevant to your organization</li>
+            </ul>
+            <p><strong>Advanced Detection Capabilities:</strong></p>
+            <ul>
+              <li><strong>Behavioral Analytics:</strong> Identifying anomalous patterns that may indicate APT activity</li>
+              <li><strong>Network Traffic Analysis:</strong> Detecting unusual communication patterns and data transfers</li>
+              <li><strong>Endpoint Detection and Response (EDR):</strong> Monitoring endpoint behavior for signs of compromise</li>
+              <li><strong>Deception Technology:</strong> Deploying honeypots, honeyfiles, and decoy credentials to detect lateral movement</li>
+              <li><strong>User and Entity Behavior Analytics (UEBA):</strong> Identifying unusual user behaviors that may indicate account compromise</li>
+            </ul>
+            <p><strong>Threat Hunting:</strong></p>
+            <ul>
+              <li>Proactive searching for indicators of compromise based on threat intelligence</li>
+              <li>Regular hypothesis-driven hunting exercises targeting specific APT techniques</li>
+              <li>Retrospective analysis of historical data to identify previously undetected compromises</li>
+              <li>Using automated hunting tools to scale manual hunting capabilities</li>
+            </ul>
+            <p><strong>Defensive Architecture:</strong></p>
+            <ul>
+              <li><strong>Network Segmentation:</strong> Limiting lateral movement opportunities</li>
+              <li><strong>Zero Trust Architecture:</strong> Verifying every access request regardless of source</li>
+              <li><strong>Privileged Access Management:</strong> Strictly controlling admin-level privileges</li>
+              <li><strong>Micro-segmentation:</strong> Implementing fine-grained access controls between workloads</li>
+              <li><strong>Data-Centric Security:</strong> Protecting sensitive data through encryption and access controls</li>
+            </ul>
+            <p><strong>Incident Response for APTs:</strong></p>
+            <ul>
+              <li>Developing specialized playbooks for APT incidents</li>
+              <li>Establishing relationships with external incident response experts</li>
+              <li>Conducting regular exercises simulating APT scenarios</li>
+              <li>Maintaining offline backups and restoration capabilities</li>
+              <li>Planning for complete network rebuilds if necessary</li>
+            </ul>
+            <p><strong>Strategic Defenses:</strong></p>
+            <ul>
+              <li><strong>Supply Chain Security:</strong> Vetting vendors and monitoring third-party access</li>
+              <li><strong>Insider Threat Programs:</strong> Detecting and preventing internal compromises</li>
+              <li><strong>Security Awareness:</strong> Training employees to recognize spear phishing and social engineering</li>
+              <li><strong>Regular Red Team Exercises:</strong> Testing defenses against realistic APT scenarios</li>
+              <li><strong>Cyber Intelligence:</strong> Monitoring for targeting by specific threat actors</li>
+            </ul>
+            <p>Effective APT defense requires a mindset shift from prevention-only to assumption of compromise, focusing on rapid detection and response to minimize impact.</p>`
+          },
+          {
+            title: 'Case Studies of Notable APT Campaigns',
+            content: `<p>Examining real-world APT campaigns provides valuable insights into their sophistication and impact:</p>
+            <p><strong>Operation Aurora (2009-2010)</strong></p>
+            <ul>
+              <li><strong>Actors:</strong> APT group linked to China's People's Liberation Army</li>
+              <li><strong>Targets:</strong> Google, Adobe, Juniper Networks, and dozens of other technology companies</li>
+              <li><strong>Techniques:</strong> Zero-day vulnerability in Internet Explorer, advanced backdoors, source code theft</li>
+              <li><strong>Impact:</strong> Theft of intellectual property and access to Gmail accounts of Chinese human rights activists</li>
+              <li><strong>Significance:</strong> One of the first publicly disclosed APT campaigns targeting private sector organizations</li>
+            </ul>
+            <p><strong>Stuxnet (Discovered 2010)</strong></p>
+            <ul>
+              <li><strong>Actors:</strong> Believed to be a collaboration between US and Israeli intelligence</li>
+              <li><strong>Target:</strong> Iranian nuclear enrichment facilities</li>
+              <li><strong>Techniques:</strong> Multiple zero-day vulnerabilities, compromised digital certificates, air-gap jumping, PLC tampering</li>
+              <li><strong>Impact:</strong> Physical damage to uranium centrifuges, delaying Iran's nuclear program</li>
+              <li><strong>Significance:</strong> First known cyber attack to cause physical damage to critical infrastructure</li>
+            </ul>
+            <p><strong>APT29 (Cozy Bear) SolarWinds Operation (2020)</strong></p>
+            <ul>
+              <li><strong>Actors:</strong> APT29, associated with Russia's Foreign Intelligence Service (SVR)</li>
+              <li><strong>Targets:</strong> US government agencies, critical infrastructure, and private companies</li>
+              <li><strong>Techniques:</strong> Supply chain compromise of SolarWinds Orion software, stealthy backdoor (SUNBURST), careful operational security</li>
+              <li><strong>Impact:</strong> Unprecedented access to thousands of organizations, including sensitive government networks</li>
+              <li><strong>Significance:</strong> Demonstrated the catastrophic potential of supply chain attacks</li>
+            </ul>
+            <p><strong>APT41 (Double Dragon)</strong></p>
+            <ul>
+              <li><strong>Actors:</strong> China-linked group with both espionage and financial motivations</li>
+              <li><strong>Targets:</strong> Healthcare, high-tech, telecommunications, video game companies across 14+ countries</li>
+              <li><strong>Techniques:</strong> Spear-phishing, supply chain compromises, zero-days, living-off-the-land techniques</li>
+              <li><strong>Impact:</strong> Theft of intellectual property and customer data, deployment of ransomware</li>
+              <li><strong>Significance:</strong> Blurs the line between state-sponsored espionage and financial cybercrime</li>
+            </ul>
+            <p>These case studies highlight the evolution of APT capabilities and the need for organizations to understand the specific threat actors that may target their industry or region.</p>`
           }
         ]
       },
-      points: 30,
+      points: 80,
       order: 1,
       isRequired: true
     },
     {
       levelId: 10,
-      name: 'APT Recognition Quiz',
-      description: 'Test your knowledge of APT characteristics and defense strategies.',
+      name: 'APT Tactics Quiz',
+      description: 'Test your knowledge of APT tactics, techniques, and procedures.',
       type: 'QUIZ' as ActivityType,
       content: {
         questions: [
@@ -2063,20 +2556,88 @@ db.query(query, [id]);</pre>`
           }
         ]
       },
-      points: 40,
+      points: 80,
       order: 2,
       isRequired: true
     },
     {
       levelId: 10,
-      name: 'Advanced Persistent Threats Lab',
-      description: 'Analyze APT attack patterns, identify indicators of compromise, and develop defense strategies.',
-      type: 'LAB' as ActivityType,
+      name: 'Advanced Security Simulation',
+      description: 'Defend against a simulated APT attack through multiple stages of the cyber kill chain.',
+      type: 'SIMULATION' as ActivityType,
       content: {
-        title: 'Advanced Persistent Threats Lab',
-        description: 'Analyze APT attack patterns and develop defense strategies against sophisticated threats.'
+        title: 'Advanced Security Simulation',
+        description: 'Simulate a real-world APT attack scenario to test your security team\'s ability to defend against sophisticated threats.',
+        instructions: '<p>In this simulation, you will be placed in a situation where a sophisticated threat actor is attempting to breach your organization\'s security. Your task is to:</p><ol><li>Identify the initial access methods used by the attacker</li><li>Determine the appropriate defensive actions for each stage of the attack</li><li>Implement the defensive actions</li><li>Document the attack and lessons learned</li></ol>',
+        setupGuide: '<p>This simulation is based on a real-world scenario. You will receive a scenario description and a set of instructions. Your team will have 24 hours to respond to the attack.</p>',
+        scenarios: [
+          {
+            id: "scenario1",
+            name: "Initial Access",
+            description: "The attacker has gained initial access to your network through a phishing email. They are now trying to move laterally within the network.",
+            difficulty: "Medium",
+            solution: `<p><strong>Solution Guide:</strong></p>
+            <ol>
+              <li>Block suspicious email domains and senders</li>
+              <li>Implement multi-factor authentication for all users</li>
+              <li>Monitor network traffic for unusual activity</li>
+              <li>Implement network segmentation to limit lateral movement</li>
+              <li>Implement user behavior analytics to detect suspicious activity</li>
+              <li>Implement a security information and event management (SIEM) system</li>
+            </ol>
+            <p><strong>Key Observations:</strong></p>
+            <ul>
+              <li>The attacker is using a known phishing technique to gain initial access</li>
+              <li>The attacker is moving laterally within the network</li>
+              <li>The attacker is using legitimate user accounts to move laterally</li>
+              <li>The attacker is trying to gain access to sensitive data</li>
+            </ul>
+            <p><strong>Security Lessons:</strong></p>
+            <ul>
+              <li>Regularly test your security tools and software</li>
+              <li>Implement a security information and event management (SIEM) system</li>
+              <li>Implement user behavior analytics to detect suspicious activity</li>
+              <li>Implement network segmentation to limit lateral movement</li>
+              <li>Regularly update your security tools and software</li>
+            </ul>
+            <p><strong>Real-world Example:</strong></p>
+            <p>In 2018, the NotPetya APT attack affected hundreds of thousands of systems worldwide. The attackers used a zero-day vulnerability in the software used by the Ukrainian government to spread the ransomware, and the attack was stopped after a few days when a patch was released.</p>`
+          },
+          {
+            id: "scenario2",
+            name: "Privilege Escalation",
+            description: "The attacker has gained access to sensitive data and is now trying to escalate their privileges to gain control over critical systems.",
+            difficulty: "Hard",
+            solution: `<p><strong>Solution Guide:</strong></p>
+            <ol>
+              <li>Implement least privilege access controls for all users</li>
+              <li>Implement multi-factor authentication for all users</li>
+              <li>Monitor system logs for unusual activity</li>
+              <li>Implement a security information and event management (SIEM) system</li>
+              <li>Implement user behavior analytics to detect suspicious activity</li>
+              <li>Implement a change management process to review and audit changes to critical systems</li>
+            </ol>
+            <p><strong>Key Observations:</strong></p>
+            <ul>
+              <li>The attacker has gained access to sensitive data</li>
+              <li>The attacker is trying to escalate their privileges to gain control over critical systems</li>
+              <li>The attacker is using legitimate user accounts to gain access to critical systems</li>
+              <li>The attacker is trying to gain access to sensitive data</li>
+            </ul>
+            <p><strong>Security Lessons:</strong></p>
+            <ul>
+              <li>Regularly test your security tools and software</li>
+              <li>Implement a security information and event management (SIEM) system</li>
+              <li>Implement user behavior analytics to detect suspicious activity</li>
+              <li>Implement a change management process to review and audit changes to critical systems</li>
+              <li>Regularly update your security tools and software</li>
+            </ul>
+            <p><strong>Real-world Example:</strong></p>
+            <p>In 2017, the Equifax data breach occurred when attackers gained access to the company's systems through a phishing attack. The attackers were able to access sensitive data, including Social Security numbers and credit scores, because the company's security controls were not effective.</p>`
+          }
+        ]
       },
-      points: 60,
+      points: 90,
       order: 3,
       isRequired: true
     }

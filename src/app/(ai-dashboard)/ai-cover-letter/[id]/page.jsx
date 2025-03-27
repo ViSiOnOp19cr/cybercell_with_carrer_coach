@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { Button } from "@/src/components/ui/button";
-import { getCoverLetter } from "@/src/actions/cover-letter";
+import { Button } from "../../../../components/ui/ai-button";
+import { getCoverLetter } from "../../../../actions/cover-letter";
 import { ArrowLeft, Download, Share } from "lucide-react";
 import { notFound } from "next/navigation";
-import { getUserOnboardingStatus } from "@/src/actions/user";
+import { getUserOnboardingStatus } from "../../../../actions/user";
 import { redirect } from "next/navigation";
 
 export default async function CoverLetterPage({ params }) {

@@ -109,34 +109,46 @@ export default function QuizActivity({ activity, userId, progress }: QuizActivit
   };
   
   const handleSubmitQuiz = async () => {
+    if (isSubmitting) return;
+    
+    setIsSubmitting(true);
+    
     try {
-      setIsSubmitting(true);
+      // First check if the user exists in the database
+      const userCheckResponse = await fetch('/api/user-check');
       
-      // Calculate the score
-      const quizScore = calculateScore();
-      setScore(quizScore);
-      
-      // Determine if the user passed the quiz
-      const passed = quizScore >= 70; // Assuming 70% is passing
-      
-      // Set result message
-      if (passed) {
-        setResultMessage("Congratulations! You've passed the quiz.");
-      } else {
-        setResultMessage("You didn't pass the quiz. Please try again.");
+      if (!userCheckResponse.ok) {
+        throw new Error('Failed to verify user account');
       }
       
-      // Prepare the payload with properly formatted answers
-      const formattedAnswers = prepareAnswersForSubmission(selectedAnswers);
+      // Calculate the score
+      const totalQuestions = questions.length;
+      const correctAnswers = questions.filter(q => selectedAnswers[q.id] === q.correctAnswer).length;
+      const scorePercent = Math.round((correctAnswers / totalQuestions) * 100);
       
-      // Calculate points earned based on the quiz score and activity points
-      // This mirrors the calculation on the server
-      const pointsEarned = Math.round((quizScore / 100) * activity.points);
+      setScore(scorePercent);
       
+      // Set result message based on score
+      if (scorePercent >= 70) {
+        setResultMessage(`Congratulations! You passed with ${scorePercent}% correct answers.`);
+      } else {
+        setResultMessage(`You scored ${scorePercent}%. You need at least 70% to pass.`);
+      }
+      
+      // Format answers for submission
+      const formattedAnswers: Record<string, { selected: string, correct: boolean }> = {};
+      Object.keys(selectedAnswers).forEach(questionId => {
+        formattedAnswers[questionId] = {
+          selected: selectedAnswers[questionId],
+          correct: questions.find(q => q.id === questionId)?.correctAnswer === selectedAnswers[questionId]
+        };
+      });
+      
+      // Prepare payload for the API
       const payload = {
-        isCompleted: passed,
-        score: quizScore, // Add score field for the API
-        pointsEarned, // Send this instead of score
+        isCompleted: scorePercent >= 70, // Completed if score is 70% or higher
+        score: scorePercent,
+        pointsEarned: Math.round((scorePercent / 100) * activity.points),
         answers: formattedAnswers, // Pass as an object, the API will stringify it
       };
       

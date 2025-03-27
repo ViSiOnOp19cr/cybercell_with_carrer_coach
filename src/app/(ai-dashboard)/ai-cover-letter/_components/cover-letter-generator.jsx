@@ -5,20 +5,20 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
-import { Button } from "@/src/components/ui/button";
+import { Button } from "../../../../components/ui/ai-button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/src/components/ui/card";
-import { Input } from "@/src/components/ui/input";
-import { Label } from "@/src/components/ui/label";
-import { Textarea } from "@/src/components/ui/textarea";
-import { generateCoverLetter } from "@/src/actions/cover-letter";
-import useFetch from "@/src/hooks/use-fetch";
-import { coverLetterSchema } from "@/src/app/lib/schema";
+} from "../../../../components/ui/ai-card";
+import { Input } from "../../../../components/ui/ai-input";
+import { Label } from "../../../../components/ui/ai-label";
+import { Textarea } from "../../../../components/ui/ai-textarea";
+import { generateCoverLetter } from "../../../../actions/cover-letter";
+import useFetch from "../../../../hooks/use-fetch";
+import { coverLetterSchema } from "../../../../lib/schema";
 import { useRouter } from "next/navigation";
 
 export default function CoverLetterGenerator() {

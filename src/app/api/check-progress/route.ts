@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
     
     // Check if the user exists
     const user = await db.user.findUnique({
-      where: { id: userId },
+      where: { clerkId: userId },
       include: {
         progress: {
           include: {
@@ -97,14 +97,14 @@ export async function GET(req: NextRequest) {
     // Update user's total points if it doesn't match
     if (user.totalPoints !== totalCalculatedPoints) {
       await db.user.update({
-        where: { id: userId },
+        where: { id: user.id },
         data: {
           totalPoints: totalCalculatedPoints
         }
       });
       
       fixedIssues.push({
-        user: userId,
+        user: user.id,
         oldTotalPoints: user.totalPoints,
         newTotalPoints: totalCalculatedPoints
       });

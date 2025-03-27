@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,149 +7,209 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// User model that connects with Clerk
 model User {
-  id                String              @id @default(cuid())
-  clerkId           String              @unique
-  email             String              @unique
-  username          String?
-  firstName         String?
-  lastName          String?
-  imageUrl          String?             // Added from career coach
-  industry          String?             // Added from career coach
-  industryInsight   IndustryInsight?    @relation(fields: [industry], references: [industry]) // Added from career coach
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
-  currentLevel      Int                 @default(1)
-  totalPoints       Int                 @default(0)
-  
-  // Profile fields from career coach
-  bio               String?             // Added from career coach
-  experience        Int?                // Added from career coach
-  skills            String[]            // Added from career coach
-  
-  // Existing relations
-  progress          UserProgress[]
-  achievements      UserAchievement[]
-  certificates      Certificate[]
-  careerProfile     CareerProfile?
-  resumes           Resume[]
-  coverLetters      CoverLetter[]
-  interviews        Interview[]
-  assessments       Assessment[]        // Added from career coach
+  id              String            @id @default(cuid())
+  email           String            @unique
+  username        String?
+  firstName       String?
+  lastName        String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  currentLevel    Int               @default(1)
+  totalPoints     Int               @default(0)
+  clerkId         String            @unique
+  bio             String?
+  experience      Int?
+  imageUrl        String?
+  industry        String?
+  skills          String[]
+  assessments     Assessment[]
+  careerProfile   CareerProfile?
+  certificates    Certificate[]
+  coverLetters    CoverLetter[]
+  interviews      Interview[]
+  resumes         Resume[]
+  industryInsight IndustryInsight?  @relation(fields: [industry], references: [industry])
+  achievements    UserAchievement[]
+  progress        UserProgress[]
 }
 
-// Level model for the 10 cybersecurity levels
 model Level {
-  id                Int               @id @default(autoincrement())
+  id                Int            @id @default(autoincrement())
   name              String
   description       String
-  order             Int               @unique
+  order             Int            @unique
   minPointsToPass   Int
-  activities        Activity[]
-  requiredToAdvance Boolean           @default(true)
-  progress          UserProgress[]
+  requiredToAdvance Boolean        @default(true)
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
   achievements      Achievement[]
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
+  activities        Activity[]
+  progress          UserProgress[]
 }
 
-// Activity model for challenges, quizzes, and labs within levels
 model Activity {
-  id          Int               @id @default(autoincrement())
+  id          Int                @id @default(autoincrement())
   levelId     Int
-  level       Level             @relation(fields: [levelId], references: [id])
   name        String
   description String
   type        ActivityType
-  content     Json              // Stores activity-specific content (questions, code templates, etc.)
+  content     Json
   points      Int
   order       Int
-  isRequired  Boolean           @default(false)
+  isRequired  Boolean            @default(false)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  level       Level              @relation(fields: [levelId], references: [id])
   progress    ActivityProgress[]
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
 
   @@unique([levelId, order])
 }
 
-// Progress tracking for users on each level
 model UserProgress {
-  id              Int       @id @default(autoincrement())
-  userId          String
-  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  levelId         Int
-  level           Level     @relation(fields: [levelId], references: [id])
-  isCompleted     Boolean   @default(false)
-  pointsEarned    Int       @default(0)
-  activitiesCompleted Int   @default(0)
-  startedAt       DateTime  @default(now())
-  completedAt     DateTime?
-  activityProgress ActivityProgress[]
+  id                  Int                @id @default(autoincrement())
+  userId              String
+  levelId             Int
+  isCompleted         Boolean            @default(false)
+  pointsEarned        Int                @default(0)
+  activitiesCompleted Int                @default(0)
+  startedAt           DateTime           @default(now())
+  completedAt         DateTime?
+  activityProgress    ActivityProgress[]
+  level               Level              @relation(fields: [levelId], references: [id])
+  user                User               @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, levelId])
 }
 
-// Progress tracking for individual activities
 model ActivityProgress {
-  id          Int       @id @default(autoincrement())
-  userId      String
-  activityId  Int
-  activity    Activity  @relation(fields: [activityId], references: [id])
-  progressId  Int
-  progress    UserProgress @relation(fields: [progressId], references: [id], onDelete: Cascade)
-  isCompleted Boolean   @default(false)
-  pointsEarned Int      @default(0)
-  attempts    Int       @default(0)
+  id            Int          @id @default(autoincrement())
+  userId        String
+  activityId    Int
+  progressId    Int
+  isCompleted   Boolean      @default(false)
+  pointsEarned  Int          @default(0)
+  attempts      Int          @default(0)
   lastAttemptAt DateTime?
-  completedAt DateTime?
-  answers     Json?     // Stores user's answers or solutions
+  completedAt   DateTime?
+  answers       Json?
+  activity      Activity     @relation(fields: [activityId], references: [id])
+  progress      UserProgress @relation(fields: [progressId], references: [id], onDelete: Cascade)
 
   @@unique([userId, activityId])
 }
 
-// Achievement/Badge model
 model Achievement {
   id          Int               @id @default(autoincrement())
   name        String
   description String
   imageUrl    String?
-  type        String?           // Add type field for achievement categorization
   levelId     Int?
-  level       Level?            @relation(fields: [levelId], references: [id])
-  criteria    String            // Description of how to earn this achievement
+  criteria    String
   pointsValue Int               @default(0)
-  users       UserAchievement[]
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
+  type        String?
+  level       Level?            @relation(fields: [levelId], references: [id])
+  users       UserAchievement[]
 }
 
-// User achievements junction table
 model UserAchievement {
   id            Int         @id @default(autoincrement())
   userId        String
-  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   achievementId Int
-  achievement   Achievement @relation(fields: [achievementId], references: [id])
   earnedAt      DateTime    @default(now())
+  achievement   Achievement @relation(fields: [achievementId], references: [id])
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, achievementId])
 }
 
-// Certificate model
 model Certificate {
-  id            Int       @id @default(autoincrement())
-  userId        String
-  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  title         String
-  description   String
-  issueDate     DateTime  @default(now())
-  verificationCode String  @unique
-  skills        String[]
-  imageUrl      String?
+  id               Int      @id @default(autoincrement())
+  userId           String
+  title            String
+  description      String
+  issueDate        DateTime @default(now())
+  verificationCode String   @unique
+  skills           String[]
+  imageUrl         String?
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// Activity types enum
+model CareerProfile {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  industry    String
+  subIndustry String
+  experience  Int
+  skills      String
+  bio         String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Resume {
+  id        String   @id @default(cuid())
+  userId    String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model CoverLetter {
+  id          String   @id @default(cuid())
+  userId      String
+  jobTitle    String
+  companyName String
+  content     String
+  userName    String?
+  userEmail   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Interview {
+  id        String   @id @default(cuid())
+  userId    String
+  industry  String
+  questions Json
+  answers   Json
+  score     Int?
+  status    String   @default("pending")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model IndustryInsight {
+  industry      String    @id
+  description   String
+  trends        String[]
+  skills        String[]
+  salaryRange   String?
+  growthRate    Float?
+  demandLevel   String?
+  marketOutlook String?
+  nextUpdate    DateTime?
+  users         User[]
+}
+
+model Assessment {
+  id              String   @id @default(cuid())
+  userId          String
+  type            String
+  score           Int
+  feedback        String
+  recommendations String[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  user            User     @relation(fields: [userId], references: [id])
+}
+
 enum ActivityType {
   QUIZ
   CODE_CHALLENGE
@@ -163,79 +217,3 @@ enum ActivityType {
   SIMULATION
   READING
 }
-
-// AI CAREER COACH MODELS (with prefixed names if needed)
-model CareerProfile {
-  id               String    @id @default(cuid())
-  userId           String    @unique
-  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  industry         String
-  subIndustry      String
-  experience       Int
-  skills           String
-  bio              String
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
-}
-
-model Resume {
-  id               String    @id @default(cuid())
-  userId           String
-  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  content          String    @db.Text
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
-}
-
-model CoverLetter {
-  id               String    @id @default(cuid())
-  userId           String
-  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  jobTitle         String
-  companyName      String
-  content          String    @db.Text
-  userName         String?
-  userEmail        String?
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
-}
-
-model Interview {
-  id               String    @id @default(cuid())
-  userId           String
-  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  industry         String
-  questions        Json      // Array of questions
-  answers          Json      // User answers
-  score            Int?
-  status           String    @default("pending") // pending, completed
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
-}
-
-// Added IndustryInsight model from career coach
-model IndustryInsight {
-  industry         String    @id
-  description      String
-  trends           String[]
-  skills           String[]
-  salaryRange      String?
-  growthRate       Float?
-  users            User[]
-}
-
-// Added Assessment model from career coach
-model Assessment {
-  id              String    @id @default(cuid())
-  userId          String
-  user            User      @relation(fields: [userId], references: [id])
-  type            String    // e.g., "technical", "soft-skills", "personality"
-  score           Int
-  feedback        String
-  recommendations String[]
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-}
-
-// The existing cybersecurity platform schema
-// Contains tables for users, cybersecurity challenges, progress tracking, etc.

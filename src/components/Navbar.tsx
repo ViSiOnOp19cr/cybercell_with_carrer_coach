@@ -29,7 +29,7 @@ export function Navbar() {
                 <BarChart className="mr-1 h-4 w-4" />
                 Leaderboard
               </Link>
-              <Link href="/career-coach" className="inline-flex items-center px-1 pt-1 text-sm font-medium text-white hover:text-green-300">
+              <Link href="/ai-dashboard" className="inline-flex items-center px-1 pt-1 text-sm font-medium text-white hover:text-green-300">
                 <Briefcase className="mr-1 h-4 w-4" />
                 Career Coach
               </Link>

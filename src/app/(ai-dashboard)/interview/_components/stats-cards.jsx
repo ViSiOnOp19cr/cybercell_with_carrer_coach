@@ -1,10 +1,10 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/src/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "../../../../components/ui/ai-card";
 import { Activity, Award, Calendar, CheckCircle2 } from "lucide-react";
 
 const StatsCards = ({ assessments }) => {
   // Calculate stats based on assessments
   const totalAssessments = assessments?.length || 0;
-  const completedAssessments = assessments?.filter(a => a.status === "completed")?.length || 0;
+  const completedAssessments = totalAssessments; // All assessments are considered completed
   const averageScore = assessments?.length > 0
     ? Math.round(
         assessments.reduce((sum, a) => sum + (a.score || 0), 0) / assessments.length
