@@ -9,14 +9,9 @@ import QuizActivity from "@/components/activities/QuizActivity";
 import LabActivity from "@/components/activities/LabActivity";
 import ReadingActivity from "@/components/activities/ReadingActivity";
 
-type PageProps = {
-  params: {
-    levelId: string;
-    activityId: string;
-  }
-}
-
-export default async function ActivityPage({ params }: PageProps) {
+export default async function ActivityPage({ params }: { 
+  params: { levelId: string; activityId: string } 
+}) {
   const { userId } = await auth();
   
   if (!userId) {
