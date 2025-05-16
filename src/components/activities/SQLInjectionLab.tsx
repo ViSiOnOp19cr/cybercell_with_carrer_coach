@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import { CheckCircle, AlertTriangle, Terminal, ExternalLink, Shield, RefreshCcw } from "lucide-react";
+import { CheckCircle, AlertTriangle, Terminal, ExternalLink, Shield, RefreshCcw, ArrowLeft, ArrowRight } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
@@ -17,6 +17,7 @@ interface UserRecord {
   username: string;
   email: string;
   role: string;
+  password?: string;
 }
 
 interface SQLInjectionLabProps {
@@ -30,124 +31,133 @@ export default function SQLInjectionLab({ activity, userId, progress }: SQLInjec
   const [isCompleted, setIsCompleted] = useState(progress?.isCompleted || false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState("instructions");
-  const [queryInput, setQueryInput] = useState("");
-  const [queryResults, setQueryResults] = useState<UserRecord[]>([]);
-  const [successMessages, setSuccessMessages] = useState<string[]>([]);
-  const [errorMessage, setErrorMessage] = useState("");
-  const [sqlQuery, setSqlQuery] = useState("SELECT * FROM users WHERE username = '{input}'");
-  const [challengeComplete, setChallengeComplete] = useState(false);
-  const [attempts, setAttempts] = useState(0);
-  const [vulnerableMode, setVulnerableMode] = useState(true);
+  const [currentScenarioIndex, setCurrentScenarioIndex] = useState(0);
+  const [completedScenarios, setCompletedScenarios] = useState<Record<string, boolean>>({});
   const [visibleSolutions, setVisibleSolutions] = useState<Record<string, boolean>>({});
 
   // Simulated database records
   const userRecords: UserRecord[] = [
-    { id: 1, username: "admin", email: "admin@company.com", role: "admin" },
-    { id: 2, username: "john", email: "john@company.com", role: "user" },
-    { id: 3, username: "sarah", email: "sarah@company.com", role: "user" },
-    { id: 4, username: "alice", email: "alice@company.com", role: "manager" },
-    { id: 5, username: "bob", email: "bob@company.com", role: "user" },
+    { id: 1, username: "admin", email: "admin@company.com", role: "admin", password: "adminpass" },
+    { id: 2, username: "john", email: "john@company.com", role: "user", password: "johnpass" },
+    { id: 3, username: "sarah", email: "sarah@company.com", role: "user", password: "sarahpass" },
+    { id: 4, username: "alice", email: "alice@company.com", role: "manager", password: "alicepass" },
+    { id: 5, username: "bob", email: "bob@company.com", role: "user", password: "bobpass" },
   ];
 
   // Extracted content
   const content = typeof activity.content === 'string'
     ? JSON.parse(activity.content)
     : activity.content;
-
-  // Get scenarios from content if available
   const scenarios = content.scenarios || [];
   
-  // Toggle solution visibility
+  // Navigation helpers
+  const scenario = scenarios[currentScenarioIndex];
+  const isFirst = currentScenarioIndex === 0;
+  const isLast = currentScenarioIndex === scenarios.length - 1;
+  const allComplete = scenarios.length > 0 && scenarios.every((s: {id: string}) => completedScenarios[s.id]);
+
+  // Function to go to next scenario only if current is complete
+  const goToNextScenario = () => {
+    if (scenario && completedScenarios[scenario.id] && !isLast) {
+      setCurrentScenarioIndex(i => i + 1);
+    } else if (scenario && !completedScenarios[scenario.id]) {
+      toast.error("Complete this scenario before continuing");
+    }
+  };
+
+  // Solution toggle
   const toggleSolution = (scenarioId: string) => {
-    setVisibleSolutions({
-      ...visibleSolutions,
-      [scenarioId]: !visibleSolutions[scenarioId]
-    });
+    setVisibleSolutions(prev => ({ ...prev, [scenarioId]: !prev[scenarioId] }));
   };
 
-  // Function to process SQL query (simulated)
-  const executeQuery = () => {
-    setAttempts(attempts + 1);
-    setErrorMessage("");
-    
-    if (queryInput.trim() === "") {
-      setErrorMessage("Please enter a username to search");
-      return;
-    }
+  // --- Scenario 1: Authentication Bypass ---
+  const [loginUsername, setLoginUsername] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [loginResult, setLoginResult] = useState<string | null>(null);
 
-    // Check for SQL injection patterns
-    const hasInjection = queryInput.includes("'") || 
-                         queryInput.includes(";") || 
-                         queryInput.includes("--") ||
-                         queryInput.includes("OR") ||
-                         queryInput.includes("=");
-    
-    if (hasInjection) {
-      if (vulnerableMode) {
-        // In vulnerable mode, the injection "works"
-        setQueryResults(userRecords);
-        
-        // Check if this is the admin user challenge
-        if (queryInput.toLowerCase().includes("' or '1'='1") || 
-            queryInput.toLowerCase().includes("' or 1=1") ||
-            queryInput.toLowerCase().includes("' or '1'='1'--")) {
-          if (!successMessages.includes("challenge1")) {
-            setSuccessMessages([...successMessages, "challenge1"]);
-            toast.success("Challenge complete: You successfully performed a SQL injection!");
-          }
-        }
-        
-        // Check if this is the admin-only records challenge
-        if ((queryInput.toLowerCase().includes("admin") && hasInjection) ||
-            queryInput.toLowerCase().includes("role='admin'")) {
-          if (!successMessages.includes("challenge2")) {
-            setSuccessMessages([...successMessages, "challenge2"]);
-            toast.success("Challenge complete: You accessed admin records!");
-          }
-        }
-      } else {
-        // In secure mode, the injection is blocked
-        setErrorMessage("Input validation prevented potential SQL injection attempt");
-        setQueryResults([]);
+  function handleAuthBypass() {
+    // Simulate vulnerable SQL: SELECT * FROM users WHERE username = '[USERNAME]' AND password = '[PASSWORD]'
+    const inputUser = loginUsername;
+    const inputPass = loginPassword;
+    // Check for SQLi patterns
+    if (
+      /('|--|or|1=1|\badmin\b)/i.test(inputUser) ||
+      /('|--|or|1=1)/i.test(inputPass)
+    ) {
+      setLoginResult("Authentication bypassed! All users returned.");
+      if (scenario) {
+        setCompletedScenarios(prev => ({ ...prev, [scenario.id]: true }));
       }
+      toast.success("Authentication Bypass scenario completed!");
     } else {
-      // Regular query - just find the matching user
-      const result = userRecords.filter(user => 
-        user.username.toLowerCase() === queryInput.toLowerCase()
-      );
-      setQueryResults(result);
+      // Normal login
+      const user = userRecords.find(u => u.username === inputUser && u.password === inputPass);
+      if (user) {
+        setLoginResult(`Welcome, ${user.username}!`);
+      } else {
+        setLoginResult("Login failed.");
+      }
     }
-    
-    // Check for completion
-    if (successMessages.length >= 2) {
-      setChallengeComplete(true);
+  }
+
+  // --- Scenario 2: Data Extraction ---
+  const [searchInput, setSearchInput] = useState("");
+  const [searchResults, setSearchResults] = useState<UserRecord[]>([]);
+  const [searchResultMsg, setSearchResultMsg] = useState<string | null>(null);
+
+  function handleDataExtraction() {
+    // Simulate vulnerable SQL: SELECT id, name, description, price FROM products WHERE name LIKE '%[INPUT_SEARCH]%' OR description LIKE '%[INPUT_SEARCH]%'
+    const input = searchInput;
+    // Check for UNION SELECT pattern
+    if (/union\s+select/i.test(input)) {
+      setSearchResults(userRecords);
+      setSearchResultMsg("Data extraction successful! User data exposed.");
+      if (scenario) {
+        setCompletedScenarios(prev => ({ ...prev, [scenario.id]: true }));
+      }
+      toast.success("Data Extraction scenario completed!");
+    } else {
+      setSearchResults([]);
+      setSearchResultMsg("No results found or input not vulnerable.");
     }
-  };
+  }
 
-  const toggleSecurityMode = () => {
-    setVulnerableMode(!vulnerableMode);
-    setQueryResults([]);
-    setErrorMessage("");
-    toast.info(vulnerableMode ? 
-      "Security mode enabled: Input validation is now active" : 
-      "Vulnerable mode enabled: SQL injection is now possible");
-  };
+  // --- Scenario 3: Blind SQL Injection ---
+  const [profileId, setProfileId] = useState("");
+  const [blindResult, setBlindResult] = useState<string | null>(null);
 
-  // Submit completion to backend
+  function handleBlindSQLi() {
+    // Simulate: SELECT * FROM users WHERE id = [INPUT_ID]
+    const input = profileId;
+    // Check for boolean-based or time-based SQLi
+    if (/and\s+1=1|substring|sleep|or\s+1=1/i.test(input)) {
+      setBlindResult("Blind SQL Injection successful! Data can be extracted.");
+      if (scenario) {
+        setCompletedScenarios(prev => ({ ...prev, [scenario.id]: true }));
+      }
+      toast.success("Blind SQL Injection scenario completed!");
+    } else {
+      // Normal profile lookup
+      const user = userRecords.find(u => u.id === Number(input));
+      if (user) {
+        setBlindResult(`Profile: ${user.username} (${user.email})`);
+      } else {
+        setBlindResult("User not found.");
+      }
+    }
+  }
+
+  // --- Submit Lab ---
   const handleSubmitLab = async () => {
-    if (!challengeComplete) {
-      toast.error("Please complete all challenges before submitting");
+    if (!allComplete) {
+      toast.error("Please complete all scenarios before submitting");
       return;
     }
-    
     setIsSubmitting(true);
-    
     try {
-      const response = await fetch(`/api/activities/progress`, {
+      const response = await fetch(`/api/activities/${activity.id}/progress`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId,
           activityId: activity.id,
@@ -155,7 +165,6 @@ export default function SQLInjectionLab({ activity, userId, progress }: SQLInjec
           pointsEarned: activity.points,
         }),
       });
-
       if (response.ok) {
         setIsCompleted(true);
         toast.success("Lab completed successfully!");
@@ -164,39 +173,114 @@ export default function SQLInjectionLab({ activity, userId, progress }: SQLInjec
         toast.error("Failed to submit lab progress");
       }
     } catch (error) {
-      console.error("Error submitting lab:", error);
       toast.error("An error occurred while submitting");
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  // --- Render scenario UI ---
+  function renderScenario() {
+    if (!scenario) return null;
+    if (scenario.id === "login-bypass") {
+      return (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>{scenario.name}</CardTitle>
+            <CardDescription>{scenario.description}</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Label>Username</Label>
+            <Input value={loginUsername} onChange={e => setLoginUsername(e.target.value)} placeholder="e.g. admin or ' OR '1'='1" />
+            <Label>Password</Label>
+            <Input value={loginPassword} onChange={e => setLoginPassword(e.target.value)} placeholder="any password" type="password" />
+            <Button onClick={handleAuthBypass} className="mt-2 flex gap-2 items-center"><Terminal className="h-4 w-4" />Login</Button>
+            {loginResult && <div className="mt-2 text-white/90">{loginResult}</div>}
+          </CardContent>
+        </Card>
+      );
+    }
+    if (scenario.id === "data-extraction") {
+      return (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>{scenario.name}</CardTitle>
+            <CardDescription>{scenario.description}</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Label>Search Products</Label>
+            <Input value={searchInput} onChange={e => setSearchInput(e.target.value)} placeholder="Try a UNION SELECT injection..." />
+            <Button onClick={handleDataExtraction} className="mt-2 flex gap-2 items-center"><Terminal className="h-4 w-4" />Search</Button>
+            {searchResultMsg && <div className="mt-2 text-white/90">{searchResultMsg}</div>}
+            {searchResults.length > 0 && (
+              <div className="overflow-x-auto mt-2">
+                <table className="w-full text-sm">
+                  <thead className="bg-muted">
+                    <tr>
+                      <th className="px-4 py-2 text-left">ID</th>
+                      <th className="px-4 py-2 text-left">Username</th>
+                      <th className="px-4 py-2 text-left">Email</th>
+                      <th className="px-4 py-2 text-left">Role</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {searchResults.map(user => (
+                      <tr key={user.id} className="border-t">
+                        <td className="px-4 py-2">{user.id}</td>
+                        <td className="px-4 py-2">{user.username}</td>
+                        <td className="px-4 py-2">{user.email}</td>
+                        <td className="px-4 py-2">
+                          <Badge variant={user.role === 'admin' ? "destructive" : "secondary"}>{user.role}</Badge>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      );
+    }
+    if (scenario.id === "blind-injection") {
+      return (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>{scenario.name}</CardTitle>
+            <CardDescription>{scenario.description}</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Label>Profile ID</Label>
+            <Input value={profileId} onChange={e => setProfileId(e.target.value)} placeholder="Try a boolean/time-based injection..." />
+            <Button onClick={handleBlindSQLi} className="mt-2 flex gap-2 items-center"><Terminal className="h-4 w-4" />Lookup</Button>
+            {blindResult && <div className="mt-2 text-white/90">{blindResult}</div>}
+          </CardContent>
+        </Card>
+      );
+    }
+    return null;
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">{content.title || "SQL Injection Lab"}</h2>
-          <p className="text-muted-foreground">
-            {content.description || "Practice identifying and exploiting SQL injection vulnerabilities"}
-          </p>
+          <p className="text-muted-foreground">{content.description || "Practice identifying and exploiting SQL injection vulnerabilities"}</p>
         </div>
         {isCompleted && (
           <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 flex items-center gap-1 px-3 py-1">
-            <CheckCircle className="h-4 w-4" />
-            Completed
+            <CheckCircle className="h-4 w-4" /> Completed
           </Badge>
         )}
       </div>
-
       <Tabs defaultValue="instructions" value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="instructions">Instructions</TabsTrigger>
           <TabsTrigger value="lab">SQL Injection Lab</TabsTrigger>
           <TabsTrigger value="solutions">Solutions</TabsTrigger>
           <TabsTrigger value="resources">Resources</TabsTrigger>
-          <TabsTrigger value="submit">Submit</TabsTrigger>
         </TabsList>
-
         <TabsContent value="instructions" className="space-y-4">
           <Card>
             <CardHeader>
@@ -204,182 +288,64 @@ export default function SQLInjectionLab({ activity, userId, progress }: SQLInjec
               <CardDescription>Learn how SQL injection works and how to prevent it</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: content.instructions || `
-                <p>In this lab, you'll learn about SQL injection, one of the most common web application vulnerabilities.</p>
-                <p>SQL injection occurs when user input is incorrectly filtered and directly included in SQL queries, allowing attackers to manipulate the database.</p>
-                <h3>Objectives:</h3>
-                <ol>
-                  <li>Understand how SQL injection works</li>
-                  <li>Learn common SQL injection techniques</li>
-                  <li>Test a vulnerable application</li>
-                  <li>Learn how to prevent SQL injection</li>
-                </ol>
-                <h3>Challenges:</h3>
-                <ol>
-                  <li>Use SQL injection to bypass login and retrieve all user records</li>
-                  <li>Use SQL injection to access admin-only records</li>
-                </ol>
-              `}} />
+              <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: content.instructions || "" }} />
             </CardContent>
           </Card>
-
           <Card>
             <CardHeader>
               <CardTitle>Setup Guide</CardTitle>
               <CardDescription>How to use the SQL injection lab environment</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: content.setupGuide || `
-                <p>The lab simulates a user search function in a web application with an SQL injection vulnerability.</p>
-                <p>You'll see the underlying SQL query that runs when you search, and your goal is to manipulate this query using SQL injection techniques.</p>
-                <h3>Common SQL Injection Techniques:</h3>
-                <ul>
-                  <li><code>' OR '1'='1</code> - Returns all records because the condition is always true</li>
-                  <li><code>' OR 1=1--</code> - The double dash (--) comments out the rest of the query</li>
-                  <li><code>' UNION SELECT...</code> - Combines results from multiple tables</li>
-                </ul>
-                <p>You can toggle between "Vulnerable Mode" and "Secure Mode" to see how proper input validation prevents these attacks.</p>
-              `}} />
+              <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: content.setupGuide || "" }} />
             </CardContent>
           </Card>
         </TabsContent>
-
         <TabsContent value="lab" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span>SQL Injection Simulator</span>
+          <div className="flex items-center justify-between mb-2">
+            <div>
+              <span className="font-semibold">Scenario {currentScenarioIndex + 1} of {scenarios.length}:</span> <span>{scenario?.name}</span>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => setCurrentScenarioIndex(i => i - 1)} disabled={isFirst}>
+                <ArrowLeft className="h-4 w-4 mr-1" />Prev
+              </Button>
                 <Button
-                  variant={vulnerableMode ? "destructive" : "outline"}
+                variant="outline" 
                   size="sm"
-                  onClick={toggleSecurityMode}
-                  className="flex items-center gap-2"
-                >
-                  {vulnerableMode ? 
-                    <><AlertTriangle className="h-4 w-4" /> Vulnerable Mode</> : 
-                    <><Shield className="h-4 w-4" /> Secure Mode</>
-                  }
-                </Button>
-              </CardTitle>
-              <CardDescription>
-                Search for users in the database and try SQL injection techniques
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <Label>Current SQL Query:</Label>
-                <Card className="bg-slate-950 text-slate-50 p-4 font-mono text-sm overflow-x-auto">
-                  {sqlQuery.replace('{input}', queryInput || '[user input]')}
-                </Card>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="username">Enter Username to Search:</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="username"
-                    placeholder="e.g., john or ' OR '1'='1"
-                    value={queryInput}
-                    onChange={(e) => setQueryInput(e.target.value)}
-                    className="flex-1"
-                  />
-                  <Button onClick={executeQuery} className="flex gap-2 items-center">
-                    <Terminal className="h-4 w-4" /> Execute Query
+                onClick={goToNextScenario} 
+                disabled={isLast || (scenario && !completedScenarios[scenario.id])}
+                className={
+                  scenario && completedScenarios[scenario.id] && !isLast 
+                    ? "bg-green-50 text-green-700 border-green-200" 
+                    : ""
+                }
+              >
+                Next<ArrowRight className="h-4 w-4 ml-1" />
                   </Button>
                 </div>
-                {errorMessage && (
-                  <p className="text-red-500 text-sm mt-1">{errorMessage}</p>
-                )}
               </div>
-
-              <div className="space-y-2">
-                <Label>Query Results:</Label>
-                <Card className="border p-0 overflow-hidden">
-                  {queryResults.length > 0 ? (
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-sm">
-                        <thead className="bg-muted">
-                          <tr>
-                            <th className="px-4 py-2 text-left">ID</th>
-                            <th className="px-4 py-2 text-left">Username</th>
-                            <th className="px-4 py-2 text-left">Email</th>
-                            <th className="px-4 py-2 text-left">Role</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {queryResults.map((user) => (
-                            <tr key={user.id} className="border-t">
-                              <td className="px-4 py-2">{user.id}</td>
-                              <td className="px-4 py-2">{user.username}</td>
-                              <td className="px-4 py-2">{user.email}</td>
-                              <td className="px-4 py-2">
-                                <Badge variant={user.role === 'admin' ? "destructive" : "secondary"}>
-                                  {user.role}
+          {renderScenario()}
+          <div className="flex justify-between items-center mt-4">
+            <div className="flex gap-2">
+              {scenarios.map((s: {id: string}, idx: number) => (
+                <Badge key={s.id} variant={completedScenarios[s.id] ? "default" : "secondary"} className={completedScenarios[s.id] ? "bg-green-500 text-white" : ""}>
+                  {`Scenario ${idx + 1}`}
+                  {completedScenarios[s.id] && <CheckCircle className="h-4 w-4 ml-1" />}
                                 </Badge>
-                              </td>
-                            </tr>
                           ))}
-                        </tbody>
-                      </table>
                     </div>
-                  ) : (
-                    <div className="p-8 text-center text-white/85">
-                      {attempts > 0 ? "No results found" : "Execute a query to see results"}
-                    </div>
-                  )}
-                </Card>
+            <Button 
+              onClick={handleSubmitLab} 
+              disabled={isSubmitting || isCompleted || !allComplete}
+              className="flex items-center gap-2"
+              variant="default"
+            >
+              {isSubmitting ? "Submitting..." : isCompleted ? "Completed" : "Submit Lab"}
+              {isCompleted && <CheckCircle className="h-4 w-4" />}
+            </Button>
               </div>
-
-              <div className="space-y-2">
-                <Label>Challenges:</Label>
-                <div className="grid gap-2">
-                  <div className="flex items-center gap-2">
-                    {successMessages.includes("challenge1") ? 
-                      <CheckCircle className="h-5 w-5 text-green-500" /> : 
-                      <div className="h-5 w-5 rounded-full border-2 border-muted" />
-                    }
-                    <span className={successMessages.includes("challenge1") ? "text-green-500 font-medium" : ""}>
-                      Challenge 1: Bypass authentication to retrieve all user records
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {successMessages.includes("challenge2") ? 
-                      <CheckCircle className="h-5 w-5 text-green-500" /> : 
-                      <div className="h-5 w-5 rounded-full border-2 border-muted" />
-                    }
-                    <span className={successMessages.includes("challenge2") ? "text-green-500 font-medium" : ""}>
-                      Challenge 2: Access admin-only records
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Prevention Techniques</CardTitle>
-              <CardDescription>How to protect against SQL injection attacks</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="prose max-w-none">
-                <p>SQL injection can be prevented by implementing these security measures:</p>
-                <ol>
-                  <li><strong>Parameterized Queries/Prepared Statements:</strong> Use query parameters instead of directly embedding user input in SQL queries</li>
-                  <li><strong>Input Validation:</strong> Validate and sanitize all user inputs</li>
-                  <li><strong>Stored Procedures:</strong> Use database stored procedures to abstract SQL execution</li>
-                  <li><strong>ORM Libraries:</strong> Use Object-Relational Mapping libraries which often include built-in protection</li>
-                  <li><strong>Principle of Least Privilege:</strong> Limit database account permissions</li>
-                </ol>
-                <div className="bg-yellow-50 p-4 rounded-md border border-yellow-200 text-black">
-                  <p className="font-semibold">Why Secure Mode Works:</p>
-                  <p>In secure mode, the application validates the input and rejects suspicious characters like quotes, semicolons, and SQL keywords. This prevents attackers from breaking out of the string context and injecting malicious SQL code.</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </TabsContent>
-
         <TabsContent value="solutions" className="space-y-4">
           {scenarios.length > 0 ? (
             <Card>
@@ -394,35 +360,21 @@ export default function SQLInjectionLab({ activity, userId, progress }: SQLInjec
                       <h3 className="font-semibold text-lg">{scenario.name}</h3>
                       <p className="text-white/85">{scenario.description}</p>
                     </div>
-                    
                     <div>
                       <h4 className="font-medium mb-2">Vulnerable Query</h4>
-                      <div className="bg-slate-950 text-slate-50 p-3 rounded font-mono text-sm mb-4 overflow-x-auto">
-                        {scenario.sqlQuery}
-                      </div>
+                      <div className="bg-slate-950 text-slate-50 p-3 rounded font-mono text-sm mb-4 overflow-x-auto">{scenario.sqlQuery}</div>
                     </div>
-
                     <div>
                       <div className="flex items-center justify-between mb-2">
                         <h4 className="font-medium">Solution</h4>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => toggleSolution(scenario.id)}
-                          className="h-7 px-3 text-xs"
-                        >
-                          {visibleSolutions[scenario.id] ? "Hide" : "Show Solution"}
-                        </Button>
+                        <Button variant="outline" size="sm" onClick={() => toggleSolution(scenario.id)} className="h-7 px-3 text-xs">{visibleSolutions[scenario.id] ? "Hide" : "Show Solution"}</Button>
                       </div>
-                      
                       {visibleSolutions[scenario.id] && scenario.solution ? (
                         <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-md border">
                           <div dangerouslySetInnerHTML={{ __html: scenario.solution }} />
                         </div>
                       ) : (
-                        <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-md border text-white/85">
-                          Click the "Show Solution" button to view the detailed solution.
-                        </div>
+                        <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-md border text-white/85">Click the "Show Solution" button to view the detailed solution.</div>
                       )}
                     </div>
                   </div>
@@ -440,7 +392,6 @@ export default function SQLInjectionLab({ activity, userId, progress }: SQLInjec
               </CardContent>
             </Card>
           )}
-          
           {content.summary && (
             <Card>
               <CardHeader>
@@ -452,7 +403,6 @@ export default function SQLInjectionLab({ activity, userId, progress }: SQLInjec
             </Card>
           )}
         </TabsContent>
-
         <TabsContent value="resources" className="space-y-4">
           <Card>
             <CardHeader>
@@ -467,58 +417,13 @@ export default function SQLInjectionLab({ activity, userId, progress }: SQLInjec
                   { name: "OWASP Top 10", url: "https://owasp.org/www-project-top-ten/" },
                   { name: "SQL Injection Prevention", url: "https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html" }
                 ]).map((resource: { name: string; url: string }, index: number) => (
-                  <a 
-                    key={index}
-                    href={resource.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center p-3 rounded-md border hover:bg-muted transition-colors"
-                  >
+                  <a key={index} href={resource.url} target="_blank" rel="noopener noreferrer" className="flex items-center p-3 rounded-md border hover:bg-muted transition-colors">
                     <div className="flex-1">{resource.name}</div>
                     <ExternalLink className="h-4 w-4 opacity-70" />
                   </a>
                 ))}
               </div>
             </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="submit">
-          <Card>
-            <CardHeader>
-              <CardTitle>Complete the Lab</CardTitle>
-              <CardDescription>Submit your work to receive credit</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="prose max-w-none">
-                <p>Before submitting, make sure you have:</p>
-                <ul>
-                  <li className={successMessages.includes("challenge1") ? "text-green-600" : ""}>
-                    Completed Challenge 1: Bypassed authentication using SQL injection
-                  </li>
-                  <li className={successMessages.includes("challenge2") ? "text-green-600" : ""}>
-                    Completed Challenge 2: Accessed admin-only records
-                  </li>
-                  <li>Understood how SQL injection works and how to prevent it</li>
-                </ul>
-              </div>
-            </CardContent>
-            <CardFooter className="flex justify-between">
-              <Button 
-                variant="outline" 
-                onClick={() => setActiveTab("lab")}
-              >
-                Return to Lab
-              </Button>
-              <Button
-                onClick={handleSubmitLab}
-                disabled={isSubmitting || isCompleted || !challengeComplete}
-                className="flex items-center gap-2"
-              >
-                {isSubmitting ? "Submitting..." : isCompleted ? "Completed" : "Submit Lab"}
-                {isCompleted && <CheckCircle className="h-4 w-4" />}
-              </Button>
-            </CardFooter>
           </Card>
         </TabsContent>
       </Tabs>

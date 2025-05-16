@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { CheckCircle, HardDrive, FileSearch, Clock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 
 interface DigitalForensicsLabProps {
   activity: any;
@@ -19,6 +21,12 @@ export default function DigitalForensicsLab({ activity, userId, progress }: Digi
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState("diskImage");
   const [showSolutions, setShowSolutions] = useState<Record<string, boolean>>({});
+  const [answers, setAnswers] = useState<Record<string, string>>({
+    diskImage: "",
+    dataRecovery: "",
+    timeline: "",
+    caseReport: ""
+  });
 
   // Parse content
   const content = typeof activity.content === 'string'
@@ -32,12 +40,22 @@ export default function DigitalForensicsLab({ activity, userId, progress }: Digi
     }));
   };
 
+  const handleAnswerChange = (field: string, value: string) => {
+    setAnswers(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
   const handleSubmitLab = async () => {
     try {
       setIsSubmitting(true);
       
-      // Calculate a basic score
-      const score = 85;
+      // Calculate a basic score based on whether all fields have been filled
+      const filledAnswers = Object.values(answers).filter(answer => answer.trim().length > 0).length;
+      const totalAnswers = Object.keys(answers).length;
+      const completionPercentage = filledAnswers / totalAnswers;
+      const score = Math.min(Math.round(completionPercentage * 100), 100);
       
       // Update activity progress in the database
       const response = await fetch(`/api/activities/${activity.id}/progress`, {
@@ -48,7 +66,8 @@ export default function DigitalForensicsLab({ activity, userId, progress }: Digi
         body: JSON.stringify({
           isCompleted: true,
           score: score,
-          pointsEarned: Math.round((score / 100) * activity.points)
+          pointsEarned: Math.round((score / 100) * activity.points),
+          answers: answers
         }),
       });
       
@@ -99,7 +118,7 @@ export default function DigitalForensicsLab({ activity, userId, progress }: Digi
       </div>
 
       <Tabs defaultValue="diskImage" value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-3 mb-8">
+        <TabsList className="grid grid-cols-4 mb-8">
           <TabsTrigger value="diskImage" className="flex items-center gap-2">
             <HardDrive className="h-4 w-4" /> Disk Imaging
           </TabsTrigger>
@@ -109,6 +128,7 @@ export default function DigitalForensicsLab({ activity, userId, progress }: Digi
           <TabsTrigger value="timeline" className="flex items-center gap-2">
             <Clock className="h-4 w-4" /> Timeline Analysis
           </TabsTrigger>
+          <TabsTrigger value="caseReport">Case Report</TabsTrigger>
         </TabsList>
 
         {/* Disk Imaging Tab */}
@@ -129,6 +149,17 @@ export default function DigitalForensicsLab({ activity, userId, progress }: Digi
                   2048+0 records in<br />
                   2048+0 records out<br />
                   8589934592 bytes (8.6 GB, 8.0 GiB) copied, 95.4367 s, 90.0 MB/s
+                </div>
+
+                <div className="space-y-2 mt-4">
+                  <Label htmlFor="diskImage-answer">Your Analysis:</Label>
+                  <Textarea
+                    id="diskImage-answer"
+                    placeholder="Explain the steps you would take to ensure proper forensic disk imaging..."
+                    className="min-h-[120px] bg-black/20 text-white"
+                    value={answers.diskImage}
+                    onChange={(e) => handleAnswerChange("diskImage", e.target.value)}
+                  />
                 </div>
                 
                 <Button 
@@ -180,6 +211,17 @@ export default function DigitalForensicsLab({ activity, userId, progress }: Digi
                   Num Files: 127<br />
                   Recovered: 42 JPG, 15 PDF, 8 DOC
                 </div>
+
+                <div className="space-y-2 mt-4">
+                  <Label htmlFor="dataRecovery-answer">Your Analysis:</Label>
+                  <Textarea
+                    id="dataRecovery-answer"
+                    placeholder="Describe data recovery best practices and how you would apply them..."
+                    className="min-h-[120px] bg-black/20 text-white"
+                    value={answers.dataRecovery}
+                    onChange={(e) => handleAnswerChange("dataRecovery", e.target.value)}
+                  />
+                </div>
                 
                 <Button 
                   variant="link" 
@@ -225,6 +267,17 @@ export default function DigitalForensicsLab({ activity, userId, progress }: Digi
                   $ psort.py -o l2tcsv -w timeline.csv timeline.plaso<br />
                   Processing completed. 3842 events extracted.
                 </div>
+
+                <div className="space-y-2 mt-4">
+                  <Label htmlFor="timeline-answer">Your Analysis:</Label>
+                  <Textarea
+                    id="timeline-answer"
+                    placeholder="Explain the importance of timeline analysis and how to construct an effective timeline..."
+                    className="min-h-[120px] bg-black/20 text-white"
+                    value={answers.timeline}
+                    onChange={(e) => handleAnswerChange("timeline", e.target.value)}
+                  />
+                </div>
                 
                 <Button 
                   variant="link" 
@@ -245,6 +298,65 @@ export default function DigitalForensicsLab({ activity, userId, progress }: Digi
                       <li>Focus on key timeframes surrounding the incident</li>
                       <li>Document chain of evidence and all analysis steps</li>
                       <li>Use tools like Plaso (log2timeline) for super-timeline creation</li>
+                    </ol>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Case Report Tab */}
+        <TabsContent value="caseReport" className="space-y-6">
+          <Card className="bg-black/30">
+            <CardHeader>
+              <CardTitle>Case Report</CardTitle>
+              <CardDescription>
+                Create a comprehensive forensic analysis report.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="p-4 space-y-4">
+                <p>Create a summary of your findings from the digital evidence analysis.</p>
+                
+                <p>Your report should include:</p>
+                <ul className="list-disc pl-5 space-y-1">
+                  <li>Overview of evidence collected</li>
+                  <li>Key findings from each analysis method</li>
+                  <li>Timeline of significant events</li>
+                  <li>Conclusions about the security incident</li>
+                </ul>
+
+                <div className="space-y-2 mt-4">
+                  <Label htmlFor="caseReport-answer">Your Case Report:</Label>
+                  <Textarea
+                    id="caseReport-answer"
+                    placeholder="Write your comprehensive case report here..."
+                    className="min-h-[200px] bg-black/20 text-white"
+                    value={answers.caseReport}
+                    onChange={(e) => handleAnswerChange("caseReport", e.target.value)}
+                  />
+                </div>
+                
+                <Button 
+                  variant="link" 
+                  onClick={() => handleToggleSolution("caseReport")}
+                  className="p-0 h-auto font-normal text-blue-400"
+                >
+                  {showSolutions["caseReport"] ? "Hide Solution" : "Show Solution"}
+                </Button>
+                
+                {showSolutions["caseReport"] && (
+                  <div className="mt-2 p-4 bg-black/40 rounded-md">
+                    <h3 className="font-medium text-lg mb-2">Case Report Solution</h3>
+                    <p className="mb-2">A proper forensic report should include:</p>
+                    <ol className="list-decimal pl-5 space-y-2">
+                      <li>Executive summary for non-technical readers</li>
+                      <li>Detailed methodology explaining tools and procedures used</li>
+                      <li>Findings organized chronologically or by evidence source</li>
+                      <li>Supporting evidence (screenshots, log extracts, etc.)</li>
+                      <li>Chain of custody documentation</li>
+                      <li>Investigator credentials and contact information</li>
                     </ol>
                   </div>
                 )}

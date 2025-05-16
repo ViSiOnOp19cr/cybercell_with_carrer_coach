@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import { CheckCircle, Terminal, ExternalLink, Shield, Copy, ArrowRight } from "lucide-react";
+import { CheckCircle, Terminal, ExternalLink, Shield, Copy, ArrowRight, Check } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Progress } from "@/components/ui/progress";
 
 interface CryptoHashingLabProps {
   activity: any;
@@ -39,10 +40,90 @@ export default function CryptoHashingLab({ activity, userId, progress }: CryptoH
   const [encryptionMethod, setEncryptionMethod] = useState("caesar");
   const [encryptionMode, setEncryptionMode] = useState<"encrypt" | "decrypt">("encrypt");
   
+  // Task tracking variables
+  const [completedTasks, setCompletedTasks] = useState<Record<string, boolean>>({});
+  const [score, setScore] = useState(0);
+  const [showResults, setShowResults] = useState(false);
+  const [showHints, setShowHints] = useState<Record<string, boolean>>({});
+  
   // Extracted content from activity
   const content = typeof activity.content === 'string'
     ? JSON.parse(activity.content)
     : activity.content;
+
+  // Define lab tasks
+  const cryptoTasks = content?.tasks || [
+    {
+      id: "hash-generation",
+      title: "Generate a Cryptographic Hash",
+      description: "Create a hash of any text using at least one hashing algorithm.",
+      points: 20,
+      hint: "Enter some text in the input field, select a hashing algorithm, and click 'Generate Hash'."
+    },
+    {
+      id: "encrypt-message",
+      title: "Encrypt a Message",
+      description: "Encrypt a plaintext message using one of the available encryption methods.",
+      points: 20,
+      hint: "Enter your message, choose an encryption algorithm, provide a key, and click 'Encrypt'."
+    },
+    {
+      id: "decrypt-message",
+      title: "Decrypt a Message",
+      description: "Successfully decrypt an encrypted message back to its original form.",
+      points: 20,
+      hint: "Use the encrypted message, the same algorithm, and key that were used for encryption, then click 'Decrypt'."
+    }
+  ];
+
+  // Load saved progress
+  useEffect(() => {
+    if (progress?.answers) {
+      try {
+        const savedAnswers = typeof progress.answers === 'string'
+          ? JSON.parse(progress.answers)
+          : progress.answers;
+        
+        if (savedAnswers.successSteps) {
+          setSuccessSteps(savedAnswers.successSteps);
+        }
+        
+        if (savedAnswers.completedTasks) {
+          setCompletedTasks(savedAnswers.completedTasks);
+        }
+        
+        if (savedAnswers.score) {
+          setScore(savedAnswers.score);
+        }
+      } catch (error) {
+        console.error("Error parsing saved answers:", error);
+      }
+    }
+  }, [progress]);
+
+  // Update completed tasks when success steps change
+  useEffect(() => {
+    const tasks: Record<string, boolean> = {};
+    
+    cryptoTasks.forEach(task => {
+      if (task.id === "hash-generation" && successSteps.includes('hash')) {
+        tasks[task.id] = true;
+      } else if (task.id === "encrypt-message" && successSteps.includes('encrypt')) {
+        tasks[task.id] = true;
+      } else if (task.id === "decrypt-message" && successSteps.includes('decrypt')) {
+        tasks[task.id] = true;
+      }
+    });
+    
+    setCompletedTasks(tasks);
+    
+    // Calculate score based on completed tasks
+    const newScore = cryptoTasks
+      .filter(task => tasks[task.id])
+      .reduce((total, task) => total + task.points, 0);
+    
+    setScore(newScore);
+  }, [successSteps]);
 
   // Simulated hash functions
   const hashFunctions = {
@@ -229,16 +310,37 @@ export default function CryptoHashingLab({ activity, userId, progress }: CryptoH
                                  successSteps.includes('encrypt') && 
                                  successSteps.includes('decrypt');
 
+  // Calculate percentage of completion
+  const completionPercentage = (Object.keys(completedTasks).length / cryptoTasks.length) * 100;
+
+  // Toggle hint visibility for a task
+  const toggleHint = (taskId: string) => {
+    setShowHints(prev => ({
+      ...prev,
+      [taskId]: !prev[taskId]
+    }));
+  };
+
   // Submit completion to backend
   const handleSubmitLab = async () => {
     if (!allChallengesComplete) {
-      toast.error("Please complete all challenges before submitting");
+      toast.error("Please complete all tasks before submitting");
       return;
     }
     
     setIsSubmitting(true);
     
     try {
+      // Prepare submission data
+      const submissionData = {
+        successSteps,
+        completedTasks,
+        score
+      };
+
+      // Calculate points earned based on score
+      const pointsEarned = Math.round((score / (cryptoTasks.reduce((sum, task) => sum + task.points, 0))) * activity.points);
+      
       const response = await fetch(`/api/activities/${activity.id}/progress`, {
         method: "POST",
         headers: {
@@ -248,12 +350,15 @@ export default function CryptoHashingLab({ activity, userId, progress }: CryptoH
           userId,
           activityId: activity.id,
           isCompleted: true,
-          pointsEarned: activity.points,
+          score,
+          pointsEarned,
+          answers: submissionData
         }),
       });
 
       if (response.ok) {
         setIsCompleted(true);
+        setShowResults(true);
         toast.success("Lab completed successfully!");
         router.refresh();
       } else {
@@ -612,46 +717,86 @@ export default function CryptoHashingLab({ activity, userId, progress }: CryptoH
               <CardTitle>Complete the Lab</CardTitle>
               <CardDescription>Submit your work to receive credit</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="prose max-w-none">
-                <p>Before submitting, make sure you have:</p>
-                <ul>
-                  <li className={successSteps.includes('hash') ? "text-green-600" : ""}>
-                    Generated at least one cryptographic hash
-                  </li>
-                  <li className={successSteps.includes('encrypt') ? "text-green-600" : ""}>
-                    Successfully encrypted a message
-                  </li>
-                  <li className={successSteps.includes('decrypt') ? "text-green-600" : ""}>
-                    Successfully decrypted a message
-                  </li>
-                </ul>
-                
-                <div className="bg-blue-50 p-4 rounded-md border border-blue-200 text-blue-800 mt-4">
-                  <p className="font-semibold">Key Takeaways:</p>
-                  <ul className="mt-2">
-                    <li>Hashing is one-way and used for verification (passwords, integrity), not for storing secrets that need to be retrieved.</li>
-                    <li>Modern applications should use strong, dedicated password hashing algorithms like Bcrypt, Argon2, or PBKDF2.</li>
-                    <li>Classical ciphers (Caesar, Vigenère) are for educational purposes only. Use modern encryption standards like AES for real security.</li>
-                    <li>Key management is often the most challenging aspect of cryptography implementation.</li>
-                  </ul>
+            <CardContent className="space-y-6">
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-medium">Your Progress</h3>
+                  <span className="text-sm font-medium">{completionPercentage.toFixed(0)}% Complete</span>
+                </div>
+                <Progress value={completionPercentage} className="h-2" />
+              </div>
+              
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Lab Tasks</h3>
+                <div className="space-y-3">
+                  {cryptoTasks.map(task => (
+                    <div key={task.id} className="flex flex-col p-3 border rounded-md">
+                      <div className="flex items-start space-x-2">
+                        <div className={`flex-shrink-0 mt-0.5 w-5 h-5 rounded-full flex items-center justify-center ${
+                          completedTasks[task.id] ? 'bg-green-500 text-white' : 'bg-slate-200'
+                        }`}>
+                          {completedTasks[task.id] && <Check className="h-3 w-3" />}
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex justify-between">
+                            <h4 className={`font-medium ${completedTasks[task.id] ? 'text-green-600' : ''}`}>
+                              {task.title}
+                            </h4>
+                            <span className="text-sm">{task.points} pts</span>
+                          </div>
+                          <p className="text-sm text-muted-foreground mt-1">{task.description}</p>
+                          
+                          {!completedTasks[task.id] && task.hint && (
+                            <div className="mt-2">
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                onClick={() => toggleHint(task.id)}
+                                className="text-xs h-7 px-2"
+                              >
+                                {showHints[task.id] ? "Hide Hint" : "Show Hint"}
+                              </Button>
+                              
+                              {showHints[task.id] && (
+                                <div className="mt-2 p-2 bg-amber-50 border border-amber-100 rounded text-sm text-amber-700">
+                                  <span className="font-semibold">Hint:</span> {task.hint}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
+              
+              {showResults && (
+                <div className="bg-green-50 border border-green-100 rounded-md p-4">
+                  <h3 className="text-green-800 font-medium">Lab Completed!</h3>
+                  <p className="text-green-700 mt-1">
+                    You've earned {score} out of {cryptoTasks.reduce((sum, task) => sum + task.points, 0)} points.
+                  </p>
+                </div>
+              )}
+              
+              <div className="bg-blue-50 p-4 rounded-md border border-blue-200 text-blue-800 mt-4">
+                <p className="font-semibold">Key Takeaways:</p>
+                <ul className="mt-2">
+                  <li>Hashing is one-way and used for verification (passwords, integrity), not for storing secrets that need to be retrieved.</li>
+                  <li>Modern applications should use strong, dedicated password hashing algorithms like Bcrypt, Argon2, or PBKDF2.</li>
+                  <li>Classical ciphers (Caesar, Vigenère) are for educational purposes only. Use modern encryption standards like AES for real security.</li>
+                  <li>Key management is often the most challenging aspect of cryptography implementation.</li>
+                </ul>
+              </div>
             </CardContent>
-            <CardFooter className="flex justify-between">
-              <Button 
-                variant="outline" 
-                onClick={() => setActiveTab("hashing")}
-              >
-                Return to Lab
-              </Button>
+            <CardFooter className="flex justify-end">
               <Button
                 onClick={handleSubmitLab}
-                disabled={isSubmitting || isCompleted || !allChallengesComplete}
-                className="flex items-center gap-2"
+                disabled={!allChallengesComplete || isSubmitting || isCompleted}
+                className="w-full sm:w-auto"
               >
-                {isSubmitting ? "Submitting..." : isCompleted ? "Completed" : "Submit Lab"}
-                {isCompleted && <CheckCircle className="h-4 w-4" />}
+                {isSubmitting ? "Submitting..." : isCompleted ? "Completed" : "Complete Lab"}
               </Button>
             </CardFooter>
           </Card>

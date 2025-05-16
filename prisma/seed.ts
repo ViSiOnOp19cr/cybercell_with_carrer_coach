@@ -5,6 +5,11 @@ const prisma = new PrismaClient();
 // Define activity types to match the enum in the schema
 type ActivityType = 'QUIZ' | 'CODE_CHALLENGE' | 'LAB' | 'SIMULATION' | 'READING';
 
+// Helper function to create HTML solution content
+function createHtmlSolution(content: string): string {
+  return content;
+}
+
 async function main() {
   console.log('Starting seeding...');
   
@@ -982,100 +987,82 @@ db.query(query, [id]);</pre>`
       content: {
         title: 'Cryptography & Hashing Lab',
         description: 'Hands-on exercises with encryption, decryption, and hashing algorithms.',
-        instructions: '<p>In this lab, you will explore various cryptographic techniques through interactive exercises. You\'ll learn how different algorithms work and how they\'re applied in real-world security scenarios.</p><p>The lab consists of three main sections:</p><ol><li>Symmetric Encryption: Encrypt and decrypt messages using AES</li><li>Public Key Cryptography: Understand key pairs and practice encryption/decryption</li><li>Hashing and Verification: Generate hashes and verify file integrity</li></ol>',
+        instructions: '<p>In this lab, you will explore various cryptographic techniques through interactive exercises. You\'ll learn how different algorithms work and how they\'re applied in real-world security scenarios.</p><p>The lab consists of three main sections:</p><ol><li>Hashing: Generate and analyze cryptographic hashes</li><li>Encryption: Encrypt messages using classical ciphers</li><li>Decryption: Decrypt encrypted messages to verify your understanding</li></ol><p>Complete all three tasks to earn full points for this lab.</p>',
         setupGuide: '<p>This lab runs in your browser and doesn\'t require any additional setup. Simply select an exercise to begin.</p>',
+        tasks: [
+          {
+            id: "hash-generation",
+            title: "Generate a Cryptographic Hash",
+            description: "Create a hash of any text using at least one of the available hashing algorithms.",
+            points: 20,
+            hint: "Enter some text in the input field, select a hashing algorithm, and click 'Generate Hash'."
+          },
+          {
+            id: "encrypt-message",
+            title: "Encrypt a Message",
+            description: "Encrypt a plaintext message using one of the available encryption methods.",
+            points: 20,
+            hint: "Enter your message, choose an encryption algorithm, provide a key, and click 'Encrypt'."
+          },
+          {
+            id: "decrypt-message",
+            title: "Decrypt a Message",
+            description: "Successfully decrypt an encrypted message back to its original form.",
+            points: 20,
+            hint: "Use the encrypted message, the same algorithm, and key that were used for encryption, then click 'Decrypt'."
+          }
+        ],
         scenarios: [
           {
             id: "symmetric-encryption",
             name: "Symmetric Key Encryption",
-            description: "Encrypt and decrypt messages using AES-256 algorithm with a shared key",
+            description: "Encrypt and decrypt messages using classical ciphers with a shared key",
             difficulty: "Easy",
             solution: `<p><strong>Solution Guide:</strong></p>
-            <p>1. First generate a secure random key or use the provided one.</p>
-            <p>2. To encrypt a message:</p>
+            <p>1. For the Caesar cipher:</p>
             <ul>
               <li>Enter your message in the plaintext field</li>
-              <li>Enter your key in the key field</li>
-              <li>Click "Encrypt" - the encrypted message (ciphertext) will be displayed in Base64 format</li>
+              <li>Enter a number (1-25) as your shift key</li>
+              <li>Click "Encrypt" - each letter in your message will be shifted by that number of positions in the alphabet</li>
             </ul>
-            <p>3. To decrypt a message:</p>
+            <p>2. For the Vigenère cipher:</p>
             <ul>
-              <li>Enter the ciphertext in the encrypted field</li>
-              <li>Enter the same key used for encryption</li>
-              <li>Click "Decrypt" - the original message should be displayed</li>
+              <li>Enter your message in the plaintext field</li>
+              <li>Enter a keyword (e.g., "SECRET")</li>
+              <li>Click "Encrypt" - the keyword will be repeated and used to shift each letter by different amounts</li>
             </ul>
             <p><strong>Common Issues:</strong></p>
             <ul>
-              <li>If decryption fails, verify you're using the exact same key that was used for encryption</li>
-              <li>Ensure you're copying the entire ciphertext including any special characters</li>
-              <li>Remember that encryption keys are case-sensitive</li>
-            </ul>
-            <p><strong>How It Works:</strong></p>
-            <p>AES (Advanced Encryption Standard) is a symmetric block cipher that encrypts data in blocks of 128 bits. The key length (256 bits in this case) determines the number of transformation rounds applied to the data. A secure initialization vector (IV) is generated for each encryption operation to ensure that identical plaintext messages encrypt to different ciphertexts.</p>`
-          },
-          {
-            id: "asymmetric-encryption",
-            name: "Public Key Cryptography",
-            description: "Generate key pairs and practice encryption/decryption with RSA",
-            difficulty: "Medium",
-            solution: `<p><strong>Solution Guide:</strong></p>
-            <p>1. Generate a key pair by clicking "Generate Key Pair"</p>
-            <p>2. For encryption:</p>
-            <ul>
-              <li>Enter a message in the plaintext field</li>
-              <li>Use the recipient's public key for encryption</li>
-              <li>Click "Encrypt" to generate the ciphertext</li>
-            </ul>
-            <p>3. For decryption:</p>
-            <ul>
-              <li>Enter the ciphertext in the encrypted message field</li>
-              <li>Use your private key for decryption</li>
-              <li>Click "Decrypt" to reveal the original message</li>
-            </ul>
-            <p><strong>Challenge Exercise:</strong></p>
-            <ol>
-              <li>Generate a key pair for Alice and another for Bob</li>
-              <li>Have Alice encrypt a message using Bob's public key</li>
-              <li>Verify that only Bob can decrypt it using his private key</li>
-              <li>Try to decrypt Alice's message with Alice's private key - it should fail</li>
-            </ol>
-            <p><strong>Security Note:</strong></p>
-            <p>In real-world applications, RSA is typically not used to encrypt large messages directly due to performance limitations. Instead, hybrid encryption is used: a random symmetric key is generated and used to encrypt the message (using AES or similar), then the symmetric key is encrypted with RSA and sent alongside the encrypted message.</p>`
+              <li>If decryption produces incorrect results, verify you're using the exact same key that was used for encryption</li>
+              <li>For Caesar cipher, ensure your key is a number</li>
+              <li>For Vigenère cipher, ensure your key contains only letters</li>
+            </ul>`
           },
           {
             id: "hashing-verification",
             name: "Hashing and Integrity",
-            description: "Generate cryptographic hashes and verify file integrity",
+            description: "Generate cryptographic hashes and understand their properties",
             difficulty: "Easy",
             solution: `<p><strong>Solution Guide:</strong></p>
             <p>1. Generating a hash:</p>
             <ul>
               <li>Enter text in the input field</li>
-              <li>Select a hashing algorithm (SHA-256 recommended)</li>
+              <li>Select a hashing algorithm (SHA-256 recommended for security)</li>
               <li>Click "Generate Hash"</li>
               <li>The resulting hash will be displayed</li>
             </ul>
-            <p>2. Verifying integrity:</p>
+            <p>2. Understanding hash properties:</p>
             <ul>
-              <li>Upload a file or enter text</li>
-              <li>Generate the hash and save it</li>
-              <li>Make a change to the file/text</li>
-              <li>Generate a new hash and compare - even tiny changes will produce a completely different hash</li>
+              <li><strong>Deterministic:</strong> The same input always produces the same hash - try hashing the same text twice</li>
+              <li><strong>Avalanche effect:</strong> Small changes cause drastically different hashes - try changing just one character</li>
+              <li><strong>Fixed length:</strong> Hashes have the same length regardless of input size</li>
+              <li><strong>One-way:</strong> You cannot derive the original input from the hash</li>
             </ul>
-            <p><strong>Password Hashing:</strong></p>
-            <p>For the password hashing exercise:</p>
-            <ol>
-              <li>Enter a password in the field</li>
-              <li>Click "Hash Password" - notice it uses a slow algorithm (bcrypt) with a salt</li>
-              <li>To verify, enter the same password and the stored hash, then click "Verify"</li>
-              <li>Try different passwords to see that verification fails</li>
-            </ol>
-            <p><strong>Important Concepts:</strong></p>
+            <p><strong>Security considerations:</strong></p>
             <ul>
-              <li>Cryptographic hashes are one-way functions - you cannot retrieve the original input from the hash</li>
-              <li>Password hashing uses special algorithms (bcrypt, Argon2, etc.) that are deliberately slow to prevent brute force attacks</li>
-              <li>Password hashing also uses "salts" (random data added to the password) to prevent rainbow table attacks</li>
-              <li>Hash functions are used for integrity verification, not confidentiality - the data is not encrypted</li>
+              <li>MD5 and SHA-1 are considered cryptographically broken for security applications</li>
+              <li>SHA-256 is currently considered secure for most applications</li>
+              <li>Bcrypt is designed specifically for password hashing with salting and work factors</li>
             </ul>`
           }
         ],
@@ -1185,132 +1172,124 @@ db.query(query, [id]);</pre>`
     },
     {
       levelId: 5,
-      name: 'Multi-Factor Authentication Demo',
-      description: 'Explore different MFA methods and implementation strategies.',
+      name: 'Multi-Factor Authentication Lab',
+      description: 'Explore the three main types of authentication factors and how they create strong security.',
       type: 'LAB' as ActivityType,
       content: {
-        title: 'Multi-Factor Authentication Demo',
-        description: 'Learn how MFA protects systems even when passwords are compromised.',
-        instructions: '<p>In this lab, you\'ll explore different multi-factor authentication methods and see how they protect systems even when passwords are compromised. You\'ll also learn about the strengths and weaknesses of various MFA approaches.</p><p>The lab consists of:</p><ol><li>A simulated login system with various MFA options</li><li>Attack scenarios demonstrating password vulnerabilities</li><li>Interactive examples of different MFA implementation methods</li></ol>',
-        setupGuide: '<p>This lab runs in your browser and simulates various authentication processes. No additional setup is required.</p>',
-        scenarios: [
+        title: 'Multi-Factor Authentication Lab',
+        description: 'Learn about the three main types of authentication factors and how they work together.',
+        instructions: '<p>In this lab, you\'ll explore the three main types of authentication factors that form the foundation of Multi-Factor Authentication (MFA):</p><ul><li><strong>Knowledge factors</strong>: Something you know (passwords, security questions)</li><li><strong>Possession factors</strong>: Something you have (authenticator apps, security tokens)</li><li><strong>Inherence factors</strong>: Something you are (biometrics like fingerprints)</li></ul><p>You\'ll complete hands-on challenges for each factor type and learn how they work together to create strong authentication systems.</p>',
+        setupGuide: '<p>This lab runs in your browser and includes simulations of different authentication methods. No additional setup is required.</p>',
+        tasks: [
           {
-            id: "password-compromise",
-            name: "Password Compromise Scenario",
-            description: "See what happens when a password is stolen and how MFA prevents unauthorized access",
-            difficulty: "Easy",
-            solution: `<p><strong>Solution Guide:</strong></p>
-            <p>In this scenario, you witnessed how a password compromise leads to account takeover when only single-factor authentication is used.</p>
-            <p><strong>Key observations:</strong></p>
-            <ol>
-              <li>The attacker obtained the user's password through a phishing attack</li>
-              <li>With single-factor authentication, the attacker gained full account access</li>
-              <li>With MFA enabled, the attacker was blocked because they could not provide the second factor</li>
-            </ol>
-            <p><strong>Security lessons:</strong></p>
-            <ul>
-              <li>Even strong passwords can be compromised through social engineering, keyloggers, or data breaches</li>
-              <li>MFA creates a significant barrier for attackers because they would need to compromise multiple factors</li>
-              <li>The most effective MFA implementations use factors from different categories (something you know, have, and are)</li>
-            </ul>
-            <p><strong>Real-world example:</strong></p>
-            <p>Many major data breaches could have been prevented if MFA had been implemented. For instance, the 2020 Twitter hack that compromised high-profile accounts was partially possible because some Twitter employees did not have MFA enabled.</p>`
+            id: "knowledge-factor",
+            title: "Knowledge Factor Authentication",
+            description: "Complete the 'something you know' authentication challenge.",
+            points: 20,
+            hint: "Use the credentials provided in the instructions and correctly answer the security question."
           },
           {
-            id: "totp-authentication",
-            name: "Time-based One-Time Password (TOTP)",
-            description: "Implement and test TOTP authentication using an authenticator app",
-            difficulty: "Medium",
+            id: "possession-factor",
+            title: "Possession Factor Authentication",
+            description: "Complete the 'something you have' authentication challenge.",
+            points: 20,
+            hint: "Use the authenticator code that appears on the screen as if it were from an authenticator app."
+          },
+          {
+            id: "inherence-factor",
+            title: "Inherence Factor Authentication",
+            description: "Complete the 'something you are' authentication challenge.",
+            points: 30,
+            hint: "Adjust the fingerprint match slider to simulate a biometric authentication."
+          }
+        ],
+        scenarios: [
+          {
+            id: "knowledge-security",
+            name: "Knowledge Factor Security",
+            description: "Understand the strengths and weaknesses of knowledge-based authentication",
+            difficulty: "Easy",
             solution: `<p><strong>Solution Guide:</strong></p>
-            <p>TOTP is a common form of MFA that generates temporary codes based on a shared secret and the current time.</p>
-            <p><strong>Implementation steps:</strong></p>
-            <ol>
-              <li>During setup, the server generates a secret key</li>
-              <li>The secret is shared with the user (usually via QR code scanned by an authenticator app)</li>
-              <li>The authenticator app generates 6-digit codes that change every 30 seconds</li>
-              <li>During login, after entering a password, the user enters the current code from their app</li>
-              <li>The server independently calculates what the correct code should be based on the shared secret and current time</li>
-              <li>If the codes match, authentication succeeds</li>
-            </ol>
-            <p><strong>Security characteristics:</strong></p>
+            <p>Knowledge factors include:</p>
             <ul>
-              <li>TOTP requires no internet connection for the second factor - the app generates codes locally</li>
-              <li>The time-limited nature of codes means stolen codes are only useful for a short period</li>
-              <li>The shared secret must be protected - if compromised, an attacker could generate valid codes</li>
-              <li>Device clock synchronization is important, as time drift can cause authentication failures</li>
+              <li>Passwords</li>
+              <li>PINs</li>
+              <li>Security questions</li>
+              <li>Passphrases</li>
+            </ul>
+            <p><strong>Security considerations:</strong></p>
+            <ul>
+              <li>Vulnerable to phishing, social engineering, and data breaches</li>
+              <li>Can be shared or stolen without the user's knowledge</li>
+              <li>Users often reuse passwords across multiple sites</li>
+              <li>Security questions often have answers that could be researched</li>
             </ul>
             <p><strong>Best practices:</strong></p>
             <ul>
-              <li>Provide backup codes for users who lose access to their authenticator app</li>
-              <li>Allow a small window of acceptance for adjacent codes to account for slight time differences</li>
-              <li>Implement rate limiting to prevent brute force attacks guessing the 6-digit code</li>
+              <li>Use strong, unique passwords for each site</li>
+              <li>Implement password managers</li>
+              <li>Use complex security questions with answers not easily researched</li>
+              <li>Combine with other authentication factors for stronger security</li>
             </ul>`
           },
           {
-            id: "access-control-matrix",
-            name: "Access Control Matrix Simulation",
-            description: "Configure and test role-based access control for a simulated application",
-            difficulty: "Hard",
+            id: "possession-security",
+            name: "Possession Factor Security",
+            description: "Learn how possession-based authentication methods like TOTP work",
+            difficulty: "Medium",
             solution: `<p><strong>Solution Guide:</strong></p>
-            <p>The access control matrix exercise demonstrates how to implement proper authorization after successful authentication.</p>
-            <p><strong>Implementation steps:</strong></p>
+            <p>Possession factors include:</p>
+            <ul>
+              <li>Mobile devices with authenticator apps</li>
+              <li>Hardware security keys</li>
+              <li>Smart cards</li>
+              <li>One-time password (OTP) tokens</li>
+            </ul>
+            <p><strong>How TOTP works:</strong></p>
             <ol>
-              <li>Define resources that need protection (files, actions, data)</li>
-              <li>Create roles that represent different user types (admin, manager, user)</li>
-              <li>Create an access control matrix mapping roles to permissions for each resource</li>
-              <li>Assign users to appropriate roles</li>
-              <li>Enforce permission checks before allowing access to protected resources</li>
+              <li>A shared secret key is established between the server and authenticator app</li>
+              <li>The current time is used as an input (typically rounded to 30-second intervals)</li>
+              <li>A cryptographic algorithm combines the secret key and time to generate a code</li>
+              <li>Both the app and server can independently calculate the same code</li>
+              <li>The code changes regularly, making captured codes quickly useless</li>
             </ol>
-            <p><strong>Example matrix solution:</strong></p>
-            <table>
-              <tr>
-                <th>Role</th>
-                <th>View Reports</th>
-                <th>Edit Reports</th>
-                <th>Delete Reports</th>
-                <th>Manage Users</th>
-                <th>System Settings</th>
-              </tr>
-              <tr>
-                <td>Admin</td>
-                <td>Allow</td>
-                <td>Allow</td>
-                <td>Allow</td>
-                <td>Allow</td>
-                <td>Allow</td>
-              </tr>
-              <tr>
-                <td>Manager</td>
-                <td>Allow</td>
-                <td>Allow</td>
-                <td>Deny</td>
-                <td>Allow</td>
-                <td>Deny</td>
-              </tr>
-              <tr>
-                <td>User</td>
-                <td>Allow</td>
-                <td>Allow (own)</td>
-                <td>Deny</td>
-                <td>Deny</td>
-                <td>Deny</td>
-              </tr>
-              <tr>
-                <td>Guest</td>
-                <td>Allow (public)</td>
-                <td>Deny</td>
-                <td>Deny</td>
-                <td>Deny</td>
-                <td>Deny</td>
-              </tr>
-            </table>
             <p><strong>Security considerations:</strong></p>
             <ul>
-              <li>Follow the principle of least privilege - assign only the permissions necessary for each role</li>
-              <li>Consider implementing attribute-based rules for more granular control (e.g., users can edit their own reports)</li>
-              <li>Regularly audit and review access permissions</li>
-              <li>Implement proper session management to prevent session hijacking</li>
-              <li>Log all access attempts, especially failed ones and permission violations</li>
+              <li>Physical devices can be lost or stolen</li>
+              <li>SMS-based verification can be vulnerable to SIM swapping attacks</li>
+              <li>Device malware can potentially intercept codes</li>
+              <li>Time synchronization issues can cause authentication failures</li>
+            </ul>`
+          },
+          {
+            id: "inherence-security",
+            name: "Inherence Factor Security",
+            description: "Explore biometric authentication methods and their security implications",
+            difficulty: "Hard",
+            solution: `<p><strong>Solution Guide:</strong></p>
+            <p>Inherence factors include:</p>
+            <ul>
+              <li>Fingerprint recognition</li>
+              <li>Facial recognition</li>
+              <li>Voice recognition</li>
+              <li>Retina or iris scanning</li>
+              <li>Behavioral biometrics (typing patterns, gait analysis)</li>
+            </ul>
+            <p><strong>How biometric authentication works:</strong></p>
+            <ol>
+              <li>Capture: A biometric sample is captured from the user</li>
+              <li>Processing: The sample is converted into a digital template</li>
+              <li>Storage: Templates (not actual biometrics) are stored securely</li>
+              <li>Matching: New samples are compared against stored templates</li>
+              <li>Decision: A match score is generated and compared against a threshold</li>
+            </ol>
+            <p><strong>Security considerations:</strong></p>
+            <ul>
+              <li>Unlike passwords, biometrics cannot be changed if compromised</li>
+              <li>Systems must balance false accept rates (FAR) and false reject rates (FRR)</li>
+              <li>Privacy concerns exist around the storage and protection of biometric data</li>
+              <li>Some biometrics can be spoofed with photos, recordings, or replicas</li>
+              <li>Accessibility issues can affect some users</li>
             </ul>`
           }
         ],
@@ -1326,6 +1305,10 @@ db.query(query, [id]);</pre>`
           {
             name: 'Role-Based Access Control (RBAC) Design Guide',
             url: 'https://csrc.nist.gov/publications/detail/conference-paper/2020/04/14/a-role-based-access-control-rbac-system-design-guide/draft'
+          },
+          {
+            name: 'The Ultimate Guide to Biometric Authentication',
+            url: 'https://auth0.com/blog/biometric-authentication-a-comprehensive-guide/'
           }
         ]
       },
@@ -1396,14 +1379,29 @@ db.query(query, [id]);</pre>`
 
   // Create the achievements
   for (const achievement of achievements) {
-    await prisma.achievement.upsert({
+    // First check if this achievement already exists by name
+    const existingAchievement = await prisma.achievement.findFirst({
       where: {
-        id: 0 // This will always fail, forcing an insert
-      },
-      update: achievement,
-      create: achievement
+        name: achievement.name
+      }
     });
-    console.log(`Achievement "${achievement.name}" created`);
+    
+    if (existingAchievement) {
+      // Update if exists
+      await prisma.achievement.update({
+        where: {
+          id: existingAchievement.id
+        },
+        data: achievement
+      });
+      console.log(`Achievement "${achievement.name}" updated`);
+    } else {
+      // Create new achievement
+      await prisma.achievement.create({
+        data: achievement
+      });
+      console.log(`Achievement "${achievement.name}" created`);
+    }
   }
 
   // Level 6 activities - Social Engineering
@@ -1484,6 +1482,38 @@ db.query(query, [id]);</pre>`
       content: {
         title: 'Phishing Analysis Lab',
         description: 'Practice analyzing phishing emails and social engineering tactics to identify potential threats.',
+        instructions: '<p>In this lab, you will analyze various types of social engineering attacks including phishing emails, deepfakes, voice phishing, and social media scams. You\'ll learn how to identify red flags and protect yourself and your organization.</p><p>Complete all the tasks to earn full points for this lab.</p>',
+        setupGuide: '<p>This lab runs in your browser and doesn\'t require any additional setup. Complete each section to proceed.</p>',
+        tasks: [
+          {
+            id: "email-analysis",
+            title: "Phishing Email Analysis",
+            description: "Analyze email examples and correctly identify which ones are phishing attempts.",
+            points: 20,
+            hint: "Look for suspicious sender addresses, urgency tactics, generic greetings, and suspicious links."
+          },
+          {
+            id: "deepfake-detection",
+            title: "Deepfake Detection",
+            description: "Identify a deepfake video and select the appropriate response.",
+            points: 20,
+            hint: "Be suspicious of unexpected requests, especially those involving financial transactions or confidential information."
+          },
+          {
+            id: "vishing-response",
+            title: "Voice Phishing Response",
+            description: "Listen to a voice phishing attempt and choose the correct way to respond.",
+            points: 15,
+            hint: "Legitimate IT staff will never ask for your password over the phone."
+          },
+          {
+            id: "social-media-analysis",
+            title: "Social Media Scam Identification",
+            description: "Identify potential risks in social media apps and implement appropriate security settings.",
+            points: 15,
+            hint: "Be wary of apps requesting login credentials or excessive permissions."
+          }
+        ],
         phishingExamples: [
           {
             id: "example1",
@@ -1510,6 +1540,23 @@ db.query(query, [id]);</pre>`
             attachments: [],
             isPhishing: false,
             explanation: "This is a legitimate email from FedEx. The sender domain is correct, there's no urgent action required, the link goes to the official FedEx website, and the email doesn't ask for personal information. It simply provides tracking information for a package delivery."
+          },
+          {
+            id: "example3",
+            title: "IT Support Request",
+            sender: "help.desk@company-systems.net",
+            subject: "Immediate Action Required: System Password Reset",
+            body: "Dear User,\n\nOur security system has detected multiple failed login attempts to your account. To protect your account, you must reset your password immediately.\n\nPlease click the link below and enter your current password to verify your identity before setting a new password:\n\nhttps://company-systems.net.password-reset.com/verify\n\nThis link will expire in 30 minutes.\n\nIT Support Team",
+            attachments: [],
+            isPhishing: true,
+            redFlags: [
+              "Suspicious sender email (not matching company domain)",
+              "Creates urgency with time pressure",
+              "Suspicious link domain (password-reset.com appended to what appears to be company domain)",
+              "Asking for current password (legitimate password resets don't require this)",
+              "Generic greeting ('Dear User')"
+            ],
+            explanation: "This is a phishing attempt using IT support as a pretext. Legitimate IT departments don't ask for your current password when resetting passwords. The link domain is suspicious, with the legitimate-looking domain actually being part of a subdomain of 'password-reset.com'."
           }
         ],
         deepfakeScenarios: [
@@ -1526,6 +1573,20 @@ db.query(query, [id]);</pre>`
             ],
             correctAnswer: "Verify the request through official channels before taking action",
             explanation: "This is a deepfake video using artificial intelligence to impersonate the CEO. The request violates normal financial protocols. Any unusual or high-value financial request should be verified through established channels, even if it appears to come from leadership."
+          },
+          {
+            id: "deepfake2",
+            title: "Executive Team Meeting",
+            videoUrl: "/videos/exec_meeting_deepfake.mp4",
+            description: "A video recording of what appears to be an executive team meeting discussing confidential information about an upcoming product launch and potential layoffs. The video was shared on an internal messaging platform from an unknown account.",
+            options: [
+              "Forward the video to your team to prepare for the changes",
+              "Report the video to IT security and don't share it further",
+              "Share the video with trusted colleagues to get their opinions",
+              "Post anonymously on social media to warn customers and employees"
+            ],
+            correctAnswer: "Report the video to IT security and don't share it further",
+            explanation: "This is likely a deepfake designed to cause internal confusion and possibly damage the company's reputation. Sharing unverified sensitive information, even internally, can lead to panic and poor decision-making. The proper response is to report it to security teams who can investigate its authenticity."
           }
         ],
         voicePhishingScenarios: [
@@ -1543,6 +1604,21 @@ db.query(query, [id]);</pre>`
             ],
             correctAnswer: "Ask for the caller's employee ID and call back the official IT department number",
             explanation: "This is a voice phishing (vishing) attempt. Legitimate IT staff will never ask for your password. The caller creates a sense of urgency to pressure you into making a quick decision. Instead, you should verify the caller's identity by calling back through official channels."
+          },
+          {
+            id: "vishing2",
+            title: "Bank Fraud Department Call",
+            audioUrl: "/audio/bank_fraud_vishing.mp3",
+            transcript: "Hello, I'm calling from the fraud department at First National Bank. We've detected suspicious transactions on your account. To verify your identity and secure your account, I need your online banking username and the last 4 digits of your social security number. We need to act quickly to prevent further unauthorized charges.",
+            question: "What is the most appropriate response to this call?",
+            options: [
+              "Provide the requested information to protect your account",
+              "Hang up and call your bank's official number listed on your card or statement",
+              "Ask for more details about the suspicious transactions before providing information",
+              "Tell them you'll call back later when you have your information handy"
+            ],
+            correctAnswer: "Hang up and call your bank's official number listed on your card or statement",
+            explanation: "This is a vishing attempt. Even though the caller only asked for partial information (last 4 digits of SSN), this could be used to build a profile for identity theft. Banks have specific verification procedures and won't call asking for login credentials. Always verify by calling the official number on your card or statement, not a number provided by the caller."
           }
         ],
         socialMediaScenarios: [
@@ -1552,6 +1628,14 @@ db.query(query, [id]);</pre>`
             platform: "Instagram",
             description: "A friend shared a link to a personality quiz app that asks for Instagram login credentials to 'see which friends match your personality type.' The app promises to analyze your interactions and show compatibility scores.",
             imageUrl: "/images/instagram_quiz_scam.png",
+            question: "What is the best course of action?",
+            options: [
+              "Login with your Instagram credentials to take the quiz",
+              "Ask your friend if the quiz was worth taking before deciding",
+              "Decline to use the app and inform your friend it may be a scam",
+              "Create a new Instagram account just for this quiz"
+            ],
+            correctAnswer: "Decline to use the app and inform your friend it may be a scam",
             risks: [
               "Account compromise through credential harvesting",
               "Access to personal data and contacts",
@@ -1563,6 +1647,123 @@ db.query(query, [id]);</pre>`
               { setting: "Two-factor authentication", recommended: "Enable" },
               { setting: "Login activity monitoring", recommended: "Enable" }
             ]
+          },
+          {
+            id: "social2",
+            title: "LinkedIn Job Opportunity",
+            platform: "LinkedIn",
+            description: "You received a LinkedIn message from a recruiter you don't know, claiming to have an exclusive job opportunity matching your profile perfectly. They've attached a PDF with job details and ask you to fill out an application form that requires your full name, address, date of birth, and social security number.",
+            imageUrl: "/images/linkedin_job_scam.png",
+            question: "What should you do?",
+            options: [
+              "Fill out the form - it's a competitive job market and you need to act quickly",
+              "Provide some basic information but not your SSN",
+              "Research the company and recruiter first, then only share information through official channels",
+              "Ignore the message entirely, it's definitely spam"
+            ],
+            correctAnswer: "Research the company and recruiter first, then only share information through official channels",
+            risks: [
+              "Identity theft through collection of personal information",
+              "Malware delivery through PDF attachment",
+              "Phishing attack disguised as a job opportunity",
+              "Employment scam requesting payment for 'training' or 'background checks'"
+            ],
+            securitySettings: [
+              { setting: "Privacy settings", recommended: "Restrict who can message you" },
+              { setting: "Connection requests", recommended: "Only accept from people you know" },
+              { setting: "Profile visibility", recommended: "Limit what's visible to non-connections" }
+            ]
+          }
+        ],
+        scenarios: [
+          {
+            id: "phishing-campaign",
+            name: "Enterprise Phishing Campaign Analysis",
+            description: "Your company was targeted by a sophisticated phishing campaign. You need to analyze the attack and develop countermeasures.",
+            difficulty: "Medium",
+            solution: `<p><strong>Solution Guide:</strong></p>
+            <ol>
+              <li>Identify the phishing indicators in the campaign emails (spoofed domains, urgent language, suspicious links)</li>
+              <li>Document the attack vectors used (email spoofing, lookalike domains, social engineering tactics)</li>
+              <li>Trace the attack flow from initial email to credential harvesting or malware delivery</li>
+              <li>Implement technical controls (email filtering, DMARC/DKIM/SPF records, web filtering)</li>
+              <li>Develop an employee awareness program focusing on the specific tactics used</li>
+            </ol>
+            <p><strong>Key Observations:</strong></p>
+            <ul>
+              <li>The campaign used targeted information specific to your organization</li>
+              <li>Emails appeared to come from trusted partners or internal departments</li>
+              <li>The attacks were timed around significant events (e.g., benefits enrollment, holidays)</li>
+              <li>The phishing sites captured credentials and then redirected to legitimate sites</li>
+            </ul>
+            <p><strong>Security Recommendations:</strong></p>
+            <ul>
+              <li>Implement DMARC, DKIM, and SPF to prevent email spoofing</li>
+              <li>Deploy advanced email filtering with machine learning capabilities</li>
+              <li>Conduct regular phishing simulations with employee training</li>
+              <li>Implement two-factor authentication for all accounts</li>
+              <li>Develop clear procedures for reporting suspicious emails</li>
+            </ul>`
+          },
+          {
+            id: "social-engineering-defense",
+            name: "Comprehensive Social Engineering Defense",
+            description: "Design a comprehensive defense strategy against various social engineering attacks for an organization.",
+            difficulty: "Hard",
+            solution: `<p><strong>Solution Guide:</strong></p>
+            <ol>
+              <li>Conduct a risk assessment to identify vulnerable processes and systems</li>
+              <li>Develop policies and procedures for handling sensitive information and verification</li>
+              <li>Implement technical controls (email filtering, caller verification, physical access controls)</li>
+              <li>Design and implement regular security awareness training for all employees</li>
+              <li>Create incident response procedures specific to social engineering attacks</li>
+              <li>Establish metrics to measure the effectiveness of social engineering defenses</li>
+            </ol>
+            <p><strong>Key Components:</strong></p>
+            <ul>
+              <li><strong>Technical Controls:</strong> Email filtering, web filtering, caller ID verification, multi-factor authentication</li>
+              <li><strong>Administrative Controls:</strong> Information handling policies, verification procedures, separation of duties</li>
+              <li><strong>Physical Controls:</strong> Access control, visitor management, clean desk policy</li>
+              <li><strong>Awareness Training:</strong> Regular phishing simulations, social engineering workshops, security culture development</li>
+            </ul>
+            <p><strong>Implementation Strategy:</strong></p>
+            <ul>
+              <li>Baseline assessment of current security posture</li>
+              <li>Prioritized implementation of controls based on risk</li>
+              <li>Regular testing and validation of controls</li>
+              <li>Continuous improvement based on metrics and emerging threats</li>
+              <li>Executive support and visibility for the program</li>
+            </ul>`
+          }
+        ],
+        summary: `<p><strong>Social Engineering Defense Best Practices:</strong></p>
+        <ol>
+          <li><strong>Verify through official channels</strong>: Always verify requests for sensitive information or unusual actions through established, official channels - especially for financial transactions.</li>
+          <li><strong>Be skeptical of urgency</strong>: Urgency and fear are primary tactics used by social engineers to bypass critical thinking.</li>
+          <li><strong>Check email addresses carefully</strong>: Look at the actual email address, not just the display name, watching for subtle misspellings or alterations.</li>
+          <li><strong>Hover before clicking</strong>: Always hover over links to see the actual destination URL before clicking.</li>
+          <li><strong>Protect credentials</strong>: Never enter credentials on sites you arrived at by clicking a link in an email or message.</li>
+          <li><strong>Implement multi-factor authentication</strong>: This provides an additional security layer even if credentials are compromised.</li>
+          <li><strong>Keep software updated</strong>: Ensure systems and applications are updated with the latest security patches.</li>
+          <li><strong>Report suspicious activity</strong>: Establish clear procedures for reporting suspicious emails, calls, or messages.</li>
+        </ol>
+        <p>By implementing these practices, organizations and individuals can significantly reduce the risk of falling victim to social engineering attacks, which remain one of the most common and effective attack vectors in cybersecurity.</p>`,
+        resources: [
+          {
+            name: 'SANS Social Engineering Cheat Sheet',
+            url: 'https://www.sans.org/security-resources/sec301/social-engineering-cheat-sheet-2019'
+          },
+          {
+            name: 'Anti-Phishing Working Group (APWG)',
+            url: 'https://apwg.org/resources/'
+          },
+          {
+            name: 'FTC Phishing Prevention Guidance',
+            url: 'https://www.consumer.ftc.gov/articles/how-recognize-and-avoid-phishing-scams'
+          },
+          {
+            name: 'NIST Social Engineering & Phishing Guidance',
+            url: 'https://csrc.nist.gov/publications/detail/sp/800-61/rev-2/final'
           }
         ]
       },
@@ -1949,8 +2150,36 @@ db.query(query, [id]);</pre>`
       description: 'Practice analyzing digital evidence to reconstruct events and identify perpetrators.',
       type: 'LAB' as ActivityType,
       content: {
-        title: 'Digital Evidence Analysis Lab',
-        description: 'Practice digital forensics techniques and evidence collection.'
+        title: 'Digital Forensics Lab',
+        description: 'Practice digital forensics techniques and evidence collection.',
+        instructions: '<p>In this lab, you will practice digital forensics techniques by analyzing disk images, recovering data, and constructing event timelines. You\'ll learn how forensic investigators collect and analyze digital evidence in a forensically sound manner.</p><p>The lab consists of three main tasks:</p><ol><li>Disk Imaging: Create and analyze forensic disk images</li><li>Data Recovery: Recover deleted files using file carving techniques</li><li>Timeline Analysis: Construct a chronological timeline of system events</li></ol><p>Complete all three tasks to earn full points for this lab.</p>',
+        setupGuide: '<p>This lab runs in your browser and doesn\'t require any additional setup. Simply select a task to begin.</p><p>In a real forensic investigation, you would use specialized tools like FTK Imager, EnCase, Autopsy, and others. This lab simulates their functionality.</p>',
+        tasks: [
+          {
+            id: "task1",
+            description: "<h3>Task 1: Disk Imaging</h3><p>Create a forensically sound disk image of a compromised system.</p><div class='bg-black/20 p-3 rounded-md font-mono text-sm'>$ sudo dd if=/dev/sda of=evidence01.img bs=4M<br />2048+0 records in<br />2048+0 records out<br />8589934592 bytes (8.6 GB, 8.0 GiB) copied, 95.4367 s, 90.0 MB/s</div><p>Analyze the output and identify the correct steps to ensure the integrity of your evidence.</p>",
+            hint: "Remember that forensic soundness requires documenting chain of custody and verifying integrity with cryptographic hashes.",
+            solution: "<p>For proper forensic disk imaging:</p><ol><li>Always use a write blocker to prevent accidental modification of evidence</li><li>Compute and verify hash values before and after imaging (e.g., MD5, SHA-256)</li><li>Document the chain of custody for all evidence handling</li><li>Use forensically sound tools like 'dd', 'FTK Imager', or 'EnCase'</li><li>Store images on sterile media</li></ol>"
+          },
+          {
+            id: "task2",
+            description: "<h3>Task 2: Data Recovery</h3><p>Recover deleted files from the disk image using file carving techniques.</p><div class='bg-black/20 p-3 rounded-md font-mono text-sm'>$ foremost -t jpg,pdf,doc -i evidence01.img -o recovered_files<br />Processing: evidence01.img<br />|*****************************************|<br />File: evidence01.img<br />Start: Thu Mar 21 19:24:37 2023<br />Length: 8 GB (8589934592 bytes)<br />Num Files: 127<br />Recovered: 42 JPG, 15 PDF, 8 DOC</div><p>Analyze the command and results to determine the best practices for data recovery.</p>",
+            hint: "Look for file signatures (magic numbers) to identify file types, regardless of extensions.",
+            solution: "<p>Data recovery best practices:</p><ol><li>Look for file headers (magic numbers) to identify file types regardless of extension</li><li>Extract file metadata to establish timeline and ownership</li><li>Examine slack space and unallocated clusters for remnants of deleted files</li><li>Use multiple tools (foremost, scalpel, PhotoRec) for comprehensive recovery</li><li>Analyze file fragments to reconstruct partial evidence</li></ol>"
+          },
+          {
+            id: "task3",
+            description: "<h3>Task 3: Timeline Analysis</h3><p>Construct a forensic timeline using filesystem metadata and log files.</p><div class='bg-black/20 p-3 rounded-md font-mono text-sm'>$ log2timeline.py --parsers 'winreg,winevt,winevtx,webhist' timeline.plaso evidence01.img<br />$ psort.py -o l2tcsv -w timeline.csv timeline.plaso<br />Processing completed. 3842 events extracted.</div><p>Explain the importance of timeline analysis in digital forensics investigations.</p>",
+            hint: "Timelines help establish the sequence of events and can reveal attacker actions over time.",
+            solution: "<p>For effective timeline construction and analysis:</p><ol><li>Correlate file system timestamps (MAC times) with application logs</li><li>Account for timezone differences and timestamp manipulation</li><li>Look for gaps or inconsistencies that may indicate tampering</li><li>Focus on key timeframes surrounding the incident</li><li>Document chain of evidence and all analysis steps</li><li>Use tools like Plaso (log2timeline) for super-timeline creation</li></ol>"
+          },
+          {
+            id: "task4",
+            description: "<h3>Task 4: Case Report</h3><p>Create a summary of your findings from the digital evidence analysis.</p><p>Your report should include:</p><ul><li>Overview of evidence collected</li><li>Key findings from each analysis method</li><li>Timeline of significant events</li><li>Conclusions about the security incident</li></ul><p>A well-documented report is essential for legal proceedings and incident response.</p>",
+            hint: "Focus on presenting technical findings in a clear, concise manner that non-technical stakeholders can understand.",
+            solution: "<p>A proper forensic report should include:</p><ol><li>Executive summary for non-technical readers</li><li>Detailed methodology explaining tools and procedures used</li><li>Findings organized chronologically or by evidence source</li><li>Supporting evidence (screenshots, log extracts, etc.)</li><li>Chain of custody documentation</li><li>Investigator credentials and contact information</li></ol>"
+          }
+        ]
       },
       points: 70,
       order: 3,
@@ -2032,19 +2261,172 @@ db.query(query, [id]);</pre>`
       levelId: 9,
       name: 'Incident Response Simulation',
       description: 'Practice responding to simulated security incidents using industry-standard frameworks.',
-      type: 'SIMULATION' as ActivityType,
+      type: 'LAB' as ActivityType,
       content: {
         title: 'Incident Response Simulation',
         description: 'Simulate a real-world incident response scenario to test your incident response team\'s effectiveness.',
         instructions: '<p>In this simulation, you will be placed in a situation where a security incident has occurred. Your task is to:</p><ol><li>Identify the incident type and severity</li><li>Determine the appropriate response actions</li><li>Implement the response actions</li><li>Document the incident and lessons learned</li></ol>',
         setupGuide: '<p>This simulation is based on a real-world scenario. You will receive a scenario description and a set of instructions. Your team will have 24 hours to respond to the incident.</p>',
+        logs: [
+          {
+            id: "log1",
+            timestamp: "2023-06-15 02:34:12",
+            source: "Firewall",
+            level: "INFO",
+            message: "Connection established from 192.168.1.5 to 10.0.0.2 on port 443",
+            relevance: false
+          },
+          {
+            id: "log2",
+            timestamp: "2023-06-15 02:36:45",
+            source: "Authentication",
+            level: "WARNING",
+            message: "Failed login attempt for user admin from IP 203.0.113.4",
+            relevance: true
+          },
+          {
+            id: "log3",
+            timestamp: "2023-06-15 02:37:12",
+            source: "Authentication",
+            level: "WARNING",
+            message: "Failed login attempt for user admin from IP 203.0.113.4",
+            relevance: true
+          },
+          {
+            id: "log4",
+            timestamp: "2023-06-15 02:38:05",
+            source: "Authentication",
+            level: "INFO",
+            message: "Successful login for user admin from IP 203.0.113.4",
+            relevance: true
+          },
+          {
+            id: "log5",
+            timestamp: "2023-06-15 02:39:23",
+            source: "File System",
+            level: "INFO",
+            message: "File accessed: /etc/passwd by user admin",
+            relevance: true
+          },
+          {
+            id: "log6",
+            timestamp: "2023-06-15 02:42:17",
+            source: "Process",
+            level: "INFO",
+            message: "New process started: /bin/sh -c 'cat /etc/shadow'",
+            relevance: true
+          },
+          {
+            id: "log7",
+            timestamp: "2023-06-15 02:45:01",
+            source: "Network",
+            level: "INFO",
+            message: "Large data transfer to external IP 198.51.100.23",
+            relevance: true
+          },
+          {
+            id: "log8",
+            timestamp: "2023-06-15 02:50:33",
+            source: "Firewall",
+            level: "INFO",
+            message: "Connection established from 10.0.0.5 to 10.0.0.10 on port 80",
+            relevance: false
+          },
+          {
+            id: "log9",
+            timestamp: "2023-06-15 02:52:17",
+            source: "System",
+            level: "ERROR",
+            message: "Service httpd stopped unexpectedly",
+            relevance: false
+          },
+          {
+            id: "log10",
+            timestamp: "2023-06-15 02:55:07",
+            source: "Database",
+            level: "CRITICAL",
+            message: "Database dumping operation initiated by user admin",
+            relevance: true
+          }
+        ],
+        containmentScenarios: [
+          {
+            id: "containment1",
+            title: "Ransomware Outbreak",
+            description: "Multiple workstations are reporting encrypted files and ransom notes have appeared on desktops. What is your immediate containment strategy?",
+            options: [
+              "Shut down all systems immediately to prevent further spread",
+              "Isolate affected systems by disconnecting them from the network",
+              "Run anti-virus scans on all systems before taking any action",
+              "Restore from backups immediately and continue operations"
+            ],
+            correctAction: "Isolate affected systems by disconnecting them from the network",
+            solution: "The correct approach is to isolate affected systems from the network immediately. Shutting down all systems could result in data loss and business disruption, while running antivirus without isolation could allow further spread. Restoring from backups before containment would likely result in the backups becoming infected as well."
+          },
+          {
+            id: "containment2",
+            title: "Data Exfiltration Detection",
+            description: "Network monitoring has detected unusual outbound traffic to an unknown IP address, potentially indicating data exfiltration. What is your immediate containment strategy?",
+            options: [
+              "Block all outbound traffic from the network",
+              "Block only the specific source IP and destination IP pair",
+              "Block all traffic to the suspicious destination IP while investigating",
+              "Take no action until forensic investigation confirms data theft"
+            ],
+            correctAction: "Block all traffic to the suspicious destination IP while investigating",
+            solution: "The best immediate containment action is to block all traffic to the suspicious destination IP while investigating. This stops potential data exfiltration without disrupting other legitimate business operations. Blocking all outbound traffic is too disruptive, while blocking only the specific source/destination pair might miss other compromised systems connecting to the same destination."
+          },
+          {
+            id: "containment3",
+            title: "Compromised Admin Account",
+            description: "You've detected that a system administrator account is performing unusual actions that indicate compromise. What is your immediate containment strategy?",
+            options: [
+              "Disable the admin account immediately",
+              "Monitor the account activity without taking action to gather intelligence",
+              "Force a password reset for the admin account",
+              "Disable the admin account and provision a new account with necessary privileges"
+            ],
+            correctAction: "Disable the admin account and provision a new account with necessary privileges",
+            solution: "The best containment strategy is to disable the compromised admin account and create a new administrator account with the necessary privileges. This ensures administrative functions can continue while removing the attacker's access. Simply disabling without providing alternative access could disrupt operations, and forcing a password reset might not remove backdoors or persist mechanisms already established by the attacker."
+          }
+        ],
+        playbooks: [
+          {
+            id: "playbook1",
+            title: "Malware Incident Response",
+            description: "Arrange the following steps in the correct order to respond to a malware incident effectively:",
+            steps: [
+              { id: "step1", action: "Identify and isolate infected systems" },
+              { id: "step2", action: "Deploy anti-malware tools and scan all systems" },
+              { id: "step3", action: "Document all evidence and findings" },
+              { id: "step4", action: "Restore systems from clean backups" },
+              { id: "step5", action: "Identify initial infection vector" },
+              { id: "step6", action: "Enhance security controls to prevent reinfection" }
+            ],
+            correctOrder: ["step1", "step2", "step5", "step4", "step6", "step3"]
+          },
+          {
+            id: "playbook2",
+            title: "Data Breach Response",
+            description: "Arrange the following steps in the correct order to respond to a data breach effectively:",
+            steps: [
+              { id: "step1", action: "Identify compromised systems and data" },
+              { id: "step2", action: "Secure systems to prevent further unauthorized access" },
+              { id: "step3", action: "Notify affected parties and regulatory authorities" },
+              { id: "step4", action: "Conduct forensic investigation to determine cause and scope" },
+              { id: "step5", action: "Implement security improvements" },
+              { id: "step6", action: "Monitor for signs of additional compromise" }
+            ],
+            correctOrder: ["step2", "step1", "step4", "step3", "step5", "step6"]
+          }
+        ],
         scenarios: [
           {
             id: "scenario1",
             name: "Ransomware Attack",
             description: "Your organization has been hit by a ransomware attack. Files are being encrypted, and the malware is attempting to spread to network shares.",
             difficulty: "Medium",
-            solution: `<p><strong>Solution Guide:</strong></p>
+            solution: createHtmlSolution(`<p><strong>Solution Guide:</strong></p>
             <ol>
               <li>Isolate the infected systems immediately</li>
               <li>Run anti-virus scans on all systems</li>
@@ -2070,14 +2452,14 @@ db.query(query, [id]);</pre>`
               <li>Regularly update your security tools and software</li>
             </ul>
             <p><strong>Real-world Example:</strong></p>
-            <p>In 2017, the WannaCry ransomware attack affected hundreds of thousands of systems worldwide. The attackers used a vulnerability in Microsoft Windows to spread the ransomware, and the attack was stopped after a few days when a patch was released.</p>`
+            <p>In 2017, the WannaCry ransomware attack affected hundreds of thousands of systems worldwide. The attackers used a vulnerability in Microsoft Windows to spread the ransomware, and the attack was stopped after a few days when a patch was released.</p>`)
           },
           {
             id: "scenario2",
             name: "Data Breach",
             description: "Your organization's database has been breached. Sensitive data has been stolen, and the attackers have left a ransom note demanding a large sum of money for the decryption key.",
             difficulty: "Hard",
-            solution: `<p><strong>Solution Guide:</strong></p>
+            solution: createHtmlSolution(`<p><strong>Solution Guide:</strong></p>
             <ol>
               <li>Contain the breach immediately</li>
               <li>Identify the compromised data and its sensitivity</li>
@@ -2104,11 +2486,196 @@ db.query(query, [id]);</pre>`
               <li>Regularly update your security tools and software</li>
             </ul>
             <p><strong>Real-world Example:</strong></p>
-            <p>In 2013, the Target Corporation suffered a data breach that affected 110 million customers. The attackers gained access to the company's point-of-sale systems through a third-party vendor's network, and the breach was not discovered for several weeks.</p>`
+            <p>In 2013, the Target Corporation suffered a data breach that affected 110 million customers. The attackers gained access to the company's point-of-sale systems through a third-party vendor's network, and the breach was not discovered for several weeks.</p>`)
+          },
+          {
+            id: "scenario3",
+            name: "Log Analysis",
+            description: "You've collected logs from various systems and need to analyze them to identify suspicious activity.",
+            difficulty: "Medium",
+            solution: createHtmlSolution(`<p><strong>Solution Guide:</strong></p>
+            <ol>
+              <li>Identify the systems and services generating the logs</li>
+              <li>Review the log files for unusual activity</li>
+              <li>Look for patterns or anomalies that might indicate an attack</li>
+              <li>Use log analysis tools to search for specific keywords or patterns</li>
+              <li>Compare logs from different systems to identify commonalities</li>
+            </ol>
+            <p><strong>Key Observations:</strong></p>
+            <ul>
+              <li>Different systems might use different log formats</li>
+              <li>Logs can be analyzed using tools like Wireshark, Splunk, or ELK stack</li>
+              <li>Look for timestamps and IP addresses associated with suspicious activity</li>
+              <li>Check for unusual login attempts or failed authentication attempts</li>
+              <li>Monitor network traffic for unusual outbound connections</li>
+            </ul>
+            <p><strong>Security Lessons:</strong></p>
+            <ul>
+              <li>Regularly review and analyze logs for anomalies</li>
+              <li>Implement log monitoring and alerting systems</li>
+              <li>Use log analysis tools to identify potential security incidents</li>
+              <li>Ensure logs are stored securely and are not tampered with</li>
+              <li>Train incident responders to recognize common security threats from log data</li>
+            </ul>
+            <p><strong>Real-world Example:</strong></p>
+            <p>In 2017, the Equifax data breach was initially detected through log analysis. The attackers gained unauthorized access to the company's systems through a compromised password, and their activities were logged and monitored by security systems.</p>`),
+            logs: [
+              {
+                id: "log1",
+                timestamp: "2023-06-15 02:34:12",
+                source: "Firewall",
+                level: "INFO",
+                message: "Connection established from 192.168.1.5 to 10.0.0.2 on port 443",
+                relevance: false
+              },
+              {
+                id: "log2",
+                timestamp: "2023-06-15 02:36:45",
+                source: "Authentication",
+                level: "WARNING",
+                message: "Failed login attempt for user admin from IP 203.0.113.4",
+                relevance: true
+              },
+              {
+                id: "log3",
+                timestamp: "2023-06-15 02:37:12",
+                source: "Authentication",
+                level: "WARNING",
+                message: "Failed login attempt for user admin from IP 203.0.113.4",
+                relevance: true
+              },
+              {
+                id: "log4",
+                timestamp: "2023-06-15 02:38:05",
+                source: "Authentication",
+                level: "INFO",
+                message: "Successful login for user admin from IP 203.0.113.4",
+                relevance: true
+              },
+              {
+                id: "log5",
+                timestamp: "2023-06-15 02:39:23",
+                source: "File System",
+                level: "INFO",
+                message: "File accessed: /etc/passwd by user admin",
+                relevance: true
+              },
+              {
+                id: "log6",
+                timestamp: "2023-06-15 02:42:17",
+                source: "Process",
+                level: "INFO",
+                message: "New process started: /bin/sh -c 'cat /etc/shadow'",
+                relevance: true
+              },
+              {
+                id: "log7",
+                timestamp: "2023-06-15 02:45:01",
+                source: "Network",
+                level: "INFO",
+                message: "Large data transfer to external IP 198.51.100.23",
+                relevance: true
+              },
+              {
+                id: "log8",
+                timestamp: "2023-06-15 02:50:33",
+                source: "Firewall",
+                level: "INFO",
+                message: "Connection established from 10.0.0.5 to 10.0.0.10 on port 80",
+                relevance: false
+              },
+              {
+                id: "log9",
+                timestamp: "2023-06-15 02:52:17",
+                source: "System",
+                level: "ERROR",
+                message: "Service httpd stopped unexpectedly",
+                relevance: false
+              },
+              {
+                id: "log10",
+                timestamp: "2023-06-15 02:55:07",
+                source: "Database",
+                level: "CRITICAL",
+                message: "Database dumping operation initiated by user admin",
+                relevance: true
+              }
+            ],
+            containmentScenarios: [
+              {
+                id: "containment1",
+                title: "Ransomware Outbreak",
+                description: "Multiple workstations are reporting encrypted files and ransom notes have appeared on desktops. What is your immediate containment strategy?",
+                options: [
+                  "Shut down all systems immediately to prevent further spread",
+                  "Isolate affected systems by disconnecting them from the network",
+                  "Run anti-virus scans on all systems before taking any action",
+                  "Restore from backups immediately and continue operations"
+                ],
+                correctAction: "Isolate affected systems by disconnecting them from the network",
+                solution: "The correct approach is to isolate affected systems from the network immediately. Shutting down all systems could result in data loss and business disruption, while running antivirus without isolation could allow further spread. Restoring from backups before containment would likely result in the backups becoming infected as well."
+              },
+              {
+                id: "containment2",
+                title: "Data Exfiltration Detection",
+                description: "Network monitoring has detected unusual outbound traffic to an unknown IP address, potentially indicating data exfiltration. What is your immediate containment strategy?",
+                options: [
+                  "Block all outbound traffic from the network",
+                  "Block only the specific source IP and destination IP pair",
+                  "Block all traffic to the suspicious destination IP while investigating",
+                  "Take no action until forensic investigation confirms data theft"
+                ],
+                correctAction: "Block all traffic to the suspicious destination IP while investigating",
+                solution: "The best immediate containment action is to block all traffic to the suspicious destination IP while investigating. This stops potential data exfiltration without disrupting other legitimate business operations. Blocking all outbound traffic is too disruptive, while blocking only the specific source/destination pair might miss other compromised systems connecting to the same destination."
+              },
+              {
+                id: "containment3",
+                title: "Compromised Admin Account",
+                description: "You've detected that a system administrator account is performing unusual actions that indicate compromise. What is your immediate containment strategy?",
+                options: [
+                  "Disable the admin account immediately",
+                  "Monitor the account activity without taking action to gather intelligence",
+                  "Force a password reset for the admin account",
+                  "Disable the admin account and provision a new account with necessary privileges"
+                ],
+                correctAction: "Disable the admin account and provision a new account with necessary privileges",
+                solution: "The best containment strategy is to disable the compromised admin account and create a new administrator account with the necessary privileges. This ensures administrative functions can continue while removing the attacker's access. Simply disabling without providing alternative access could disrupt operations, and forcing a password reset might not remove backdoors or persist mechanisms already established by the attacker."
+              }
+            ],
+            playbooks: [
+              {
+                id: "playbook1",
+                title: "Malware Incident Response",
+                description: "Arrange the following steps in the correct order to respond to a malware incident effectively:",
+                steps: [
+                  { id: "step1", action: "Identify and isolate infected systems" },
+                  { id: "step2", action: "Deploy anti-malware tools and scan all systems" },
+                  { id: "step3", action: "Document all evidence and findings" },
+                  { id: "step4", action: "Restore systems from clean backups" },
+                  { id: "step5", action: "Identify initial infection vector" },
+                  { id: "step6", action: "Enhance security controls to prevent reinfection" }
+                ],
+                correctOrder: ["step1", "step2", "step5", "step4", "step6", "step3"]
+              },
+              {
+                id: "playbook2",
+                title: "Data Breach Response",
+                description: "Arrange the following steps in the correct order to respond to a data breach effectively:",
+                steps: [
+                  { id: "step1", action: "Identify compromised systems and data" },
+                  { id: "step2", action: "Secure systems to prevent further unauthorized access" },
+                  { id: "step3", action: "Notify affected parties and regulatory authorities" },
+                  { id: "step4", action: "Conduct forensic investigation to determine cause and scope" },
+                  { id: "step5", action: "Implement security improvements" },
+                  { id: "step6", action: "Monitor for signs of additional compromise" }
+                ],
+                correctOrder: ["step2", "step1", "step4", "step3", "step5", "step6"]
+              }
+            ]
           }
         ]
       },
-      points: 80,
+      points: 100,
       order: 3,
       isRequired: true
     }
@@ -2188,19 +2755,45 @@ db.query(query, [id]);</pre>`
       levelId: 10,
       name: 'Advanced Security Simulation',
       description: 'Defend against a simulated APT attack through multiple stages of the cyber kill chain.',
-      type: 'SIMULATION' as ActivityType,
+      type: 'LAB' as ActivityType,
       content: {
         title: 'Advanced Security Simulation',
         description: 'Simulate a real-world APT attack scenario to test your security team\'s ability to defend against sophisticated threats.',
         instructions: '<p>In this simulation, you will be placed in a situation where a sophisticated threat actor is attempting to breach your organization\'s security. Your task is to:</p><ol><li>Identify the initial access methods used by the attacker</li><li>Determine the appropriate defensive actions for each stage of the attack</li><li>Implement the defensive actions</li><li>Document the attack and lessons learned</li></ol>',
-        setupGuide: '<p>This simulation is based on a real-world scenario. You will receive a scenario description and a set of instructions. Your team will have 24 hours to respond to the attack.</p>',
+        setupGuide: '<p>This simulation is based on a real-world scenario. You will receive a scenario description and a set of instructions. Follow each task to defend your organization against this Advanced Persistent Threat.</p>',
+        tasks: [
+          {
+            id: "apt-detection",
+            title: "APT Detection Challenge",
+            description: "<h3>Task 1: Identify APT Indicators</h3><p>Analyze the network traffic logs and system alerts to identify indicators of an APT attack. Look for patterns that suggest initial compromise, lateral movement, and data exfiltration attempts.</p><div class='bg-black/20 p-3 rounded-md font-mono text-sm'>192.168.1.105 - - [15/May/2023:02:13:45 -0500] \"GET /login.php HTTP/1.1\" 200 2048<br />198.51.100.73 - - [15/May/2023:02:14:22 -0500] \"POST /login.php HTTP/1.1\" 302 0<br />198.51.100.73 - - [15/May/2023:02:15:12 -0500] \"GET /admin/export.php?file=../../../etc/passwd HTTP/1.1\" 200 1503<br />198.51.100.73 - - [15/May/2023:02:17:45 -0500] \"POST /upload.php HTTP/1.1\" 200 512<br />198.51.100.73 - - [15/May/2023:03:24:18 -0500] \"GET /shell.php HTTP/1.1\" 200 0<br />192.168.1.105 - - [15/May/2023:03:25:27 -0500] \"GET /images/logo.png HTTP/1.1\" 200 45231</div><p>Based on these logs, identify which activities suggest malicious behavior and what type of attack is being attempted.</p>",
+            points: 30,
+            hint: "Look for directory traversal attempts, unusual POST requests, and suspicious file access patterns.",
+            solution: "<p>The logs show clear signs of an APT attack:</p><ol><li>Initial login from external IP (198.51.100.73)</li><li>Directory traversal attempt to access system files (../../../etc/passwd)</li><li>File upload activity that likely contains malware</li><li>Access to 'shell.php' which indicates successful backdoor installation</li></ol><p>This represents the initial compromise and establishment of persistence phases of an APT attack.</p>"
+          },
+          {
+            id: "lateral-movement",
+            title: "Lateral Movement Detection",
+            description: "<h3>Task 2: Identify and Stop Lateral Movement</h3><p>The attacker has gained initial access and is now attempting to move laterally through your network. Review the following internal network logs and identify the lateral movement techniques being used.</p><div class='bg-black/20 p-3 rounded-md font-mono text-sm'>2023-05-15T04:12:35Z - SYSTEM - New service installed: \"RemoteSupport\" on SERVER04<br />2023-05-15T04:13:22Z - SECURITY - Account USER1 added to Administrators group on SERVER02<br />2023-05-15T04:15:47Z - SECURITY - SMB connection from WORKSTATION07 to SERVER01 admin$ share<br />2023-05-15T04:17:32Z - NETWORK - WMI activity from WORKSTATION07 to FILESERVER03<br />2023-05-15T04:18:15Z - PROCESS - PowerShell execution with encoded command on FILESERVER03<br />2023-05-15T04:22:53Z - SECURITY - Multiple failed login attempts from SERVER02 to various hosts</div><p>Select the appropriate containment actions to stop the lateral movement.</p>",
+            points: 30,
+            hint: "Look for privilege escalation, suspicious service installation, administrative share access, and PowerShell activity.",
+            solution: "<p>To properly contain lateral movement:</p><ol><li>Isolate WORKSTATION07 from the network immediately as it appears to be the source of lateral movement</li><li>Disable the newly created \"RemoteSupport\" service on SERVER04</li><li>Remove USER1 from the Administrators group on SERVER02</li><li>Block SMB traffic between affected systems until investigation is complete</li><li>Implement network segmentation to limit further movement</li><li>Terminate suspicious PowerShell processes on FILESERVER03</li></ol>"
+          },
+          {
+            id: "data-exfiltration",
+            title: "Data Exfiltration Prevention",
+            description: "<h3>Task 3: Detect and Prevent Data Exfiltration</h3><p>The attacker is now attempting to exfiltrate sensitive data from your organization. Analyze the following network traffic and identify the exfiltration techniques being used.</p><div class='bg-black/20 p-3 rounded-md font-mono text-sm'>2023-05-15T06:35:12Z - DNS Query: unusually-long-subdomain-with-encoded-data.attacker-controlled-domain.com<br />2023-05-15T06:36:45Z - HTTPS: Large upload (450MB) to cloud-storage-service.com from FILESERVER03<br />2023-05-15T06:40:22Z - HTTPS: Repeated small encrypted transfers to api.legitimate-looking-domain.com<br />2023-05-15T06:42:17Z - ICMP: Unusually large and frequent ICMP packets to external IP 203.0.113.42<br />2023-05-15T06:45:33Z - EMAIL: Multiple outbound emails with large attachments to unknown external domains</div><p>Identify the exfiltration channels and appropriate mitigation strategies.</p>",
+            points: 40,
+            hint: "Look for unusual protocols, encoded data in DNS queries, large file transfers, and unexpected communication patterns.",
+            solution: "<p>The attacker is using multiple exfiltration techniques:</p><ol><li>DNS tunneling (unusually long subdomains with encoded data)</li><li>Legitimate cloud services for data exfiltration</li><li>API endpoints that appear legitimate but are actually exfiltration points</li><li>ICMP tunneling (unusually large ICMP packets)</li><li>Email-based exfiltration</li></ol><p>Mitigation steps include:</p><ol><li>Implement DNS monitoring for unusual queries and limit subdomain length</li><li>Apply data loss prevention (DLP) controls for cloud services</li><li>Block unauthorized API endpoints and implement API gateway controls</li><li>Filter or block outbound ICMP traffic</li><li>Scan and block suspicious email attachments</li><li>Implement egress filtering at network boundaries</li></ol>"
+          }
+        ],
         scenarios: [
           {
             id: "scenario1",
             name: "Initial Access",
             description: "The attacker has gained initial access to your network through a phishing email. They are now trying to move laterally within the network.",
             difficulty: "Medium",
-            solution: `<p><strong>Solution Guide:</strong></p>
+            solution: createHtmlSolution(`<p><strong>Solution Guide:</strong></p>
             <ol>
               <li>Block suspicious email domains and senders</li>
               <li>Implement multi-factor authentication for all users</li>
@@ -2225,14 +2818,14 @@ db.query(query, [id]);</pre>`
               <li>Regularly update your security tools and software</li>
             </ul>
             <p><strong>Real-world Example:</strong></p>
-            <p>In 2018, the NotPetya APT attack affected hundreds of thousands of systems worldwide. The attackers used a zero-day vulnerability in the software used by the Ukrainian government to spread the ransomware, and the attack was stopped after a few days when a patch was released.</p>`
+            <p>In 2018, the NotPetya APT attack affected hundreds of thousands of systems worldwide. The attackers used a zero-day vulnerability in the software used by the Ukrainian government to spread the ransomware, and the attack was stopped after a few days when a patch was released.</p>`)
           },
           {
             id: "scenario2",
             name: "Privilege Escalation",
             description: "The attacker has gained access to sensitive data and is now trying to escalate their privileges to gain control over critical systems.",
             difficulty: "Hard",
-            solution: `<p><strong>Solution Guide:</strong></p>
+            solution: createHtmlSolution(`<p><strong>Solution Guide:</strong></p>
             <ol>
               <li>Implement least privilege access controls for all users</li>
               <li>Implement multi-factor authentication for all users</li>
@@ -2257,7 +2850,21 @@ db.query(query, [id]);</pre>`
               <li>Regularly update your security tools and software</li>
             </ul>
             <p><strong>Real-world Example:</strong></p>
-            <p>In 2017, the Equifax data breach occurred when attackers gained access to the company's systems through a phishing attack. The attackers were able to access sensitive data, including Social Security numbers and credit scores, because the company's security controls were not effective.</p>`
+            <p>In 2017, the Equifax data breach occurred when attackers gained access to the company's systems through a phishing attack. The attackers were able to access sensitive data, including Social Security numbers and credit scores, because the company's security controls were not effective.</p>`)
+          }
+        ],
+        resources: [
+          {
+            name: 'MITRE ATT&CK Framework',
+            url: 'https://attack.mitre.org/'
+          },
+          {
+            name: 'NSA Guide to Hunting Advanced Persistent Threats',
+            url: 'https://www.nsa.gov/portals/75/documents/what-we-do/cybersecurity/professional-resources/csi-nsas-guide-hunting-advanced-persistent-threats.pdf'
+          },
+          {
+            name: 'CISA Advanced Persistent Threat Guidance',
+            url: 'https://www.cisa.gov/sites/default/files/publications/APT_Guide.pdf'
           }
         ]
       },

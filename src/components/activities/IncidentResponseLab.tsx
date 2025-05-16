@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { CheckCircle, AlertTriangle, ShieldAlert, Files, Server, Lock } from "lucide-react";
@@ -20,6 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
 interface IncidentResponseLabProps {
   activity: any;
@@ -31,21 +32,155 @@ interface LogEntry {
   id: string;
   timestamp: string;
   source: string;
-  level: "info" | "warning" | "error" | "critical";
+  level: string;
   message: string;
   relevance?: boolean;
 }
 
+interface ContainmentScenario {
+  id: string;
+  title: string;
+  description: string;
+  options: string[];
+  correctAction: string;
+  solution: string;
+}
+
+interface PlaybookStep {
+  id: string;
+  action: string;
+}
+
 interface Playbook {
   id: string;
-  name: string;
-  steps: {
-    id: string;
-    action: string;
-    order: number;
-  }[];
+  title: string;
+  description: string;
+  steps: PlaybookStep[];
   correctOrder: string[];
 }
+
+// Default data to use if content is missing or malformed
+const defaultLogs: LogEntry[] = [
+  {
+    id: "log1",
+    timestamp: "2023-07-15 08:23:15",
+    source: "auth.log",
+    level: "WARNING",
+    message: "Failed login attempt for admin from IP 192.168.1.45",
+    relevance: true
+  },
+  {
+    id: "log2",
+    timestamp: "2023-07-15 08:23:55",
+    source: "auth.log",
+    level: "INFO",
+    message: "Successful login for admin from IP 192.168.1.45"
+  },
+  {
+    id: "log3",
+    timestamp: "2023-07-15 08:24:30",
+    source: "system.log",
+    level: "CRITICAL",
+    message: "Unexpected privilege escalation for user admin",
+    relevance: true
+  }
+];
+
+const defaultContainmentScenarios: ContainmentScenario[] = [
+  {
+    id: "scenario1",
+    title: "Ransomware Outbreak",
+    description: "Multiple systems on the corporate network have been encrypted by ransomware. Users report seeing ransom notes on their screens.",
+    options: [
+      "Pay the ransom immediately to restore access",
+      "Isolate affected systems by disconnecting them from the network",
+      "Run anti-malware scan while systems remain online",
+      "Immediately restore from backups without containing the threat"
+    ],
+    correctAction: "Isolate affected systems by disconnecting them from the network",
+    solution: "Isolating affected systems is the first step in containment to prevent further spread of ransomware. After isolation, the encrypted data can be recovered from recent backups if available."
+  },
+  {
+    id: "scenario2",
+    title: "Data Exfiltration Detection",
+    description: "Monitoring systems have detected unusual outbound data transfers to an unknown IP address originating from a server containing sensitive data.",
+    options: [
+      "Block the suspicious IP address only",
+      "Shut down the affected server immediately",
+      "Monitor the connection to gather more information without taking action",
+      "Isolate the server and block all outbound connections while maintaining services"
+    ],
+    correctAction: "Isolate the server and block all outbound connections while maintaining services",
+    solution: "Immediate isolation prevents further data exfiltration while maintaining critical services. This balanced approach allows for investigation while stopping the immediate threat."
+  }
+];
+
+const defaultPlaybooks: Playbook[] = [
+  {
+    id: "playbook1",
+    title: "Data Breach Response",
+    description: "Organize the steps for responding to a data breach in the correct order.",
+    steps: [
+      {
+        id: "step1",
+        action: "Identify and contain the breach"
+      },
+      {
+        id: "step2",
+        action: "Assemble the incident response team"
+      },
+      {
+        id: "step3",
+        action: "Document the breach and collect evidence"
+      },
+      {
+        id: "step4",
+        action: "Conduct a preliminary assessment"
+      },
+      {
+        id: "step5",
+        action: "Notify affected parties and authorities"
+      },
+      {
+        id: "step6",
+        action: "Analyze root cause and implement remediation"
+      }
+    ],
+    correctOrder: ["step2", "step4", "step1", "step3", "step5", "step6"]
+  },
+  {
+    id: "playbook2",
+    title: "Malware Incident Response",
+    description: "Order the steps for responding to a malware infection on a critical system.",
+    steps: [
+      {
+        id: "step1",
+        action: "Isolate the infected system from the network"
+      },
+      {
+        id: "step2",
+        action: "Identify malware type and entry point"
+      },
+      {
+        id: "step3",
+        action: "Create forensic images of infected systems"
+      },
+      {
+        id: "step4",
+        action: "Scan other systems for similar infections"
+      },
+      {
+        id: "step5",
+        action: "Remove malware and restore system from clean backup"
+      },
+      {
+        id: "step6",
+        action: "Implement preventive measures to avoid reinfection"
+      }
+    ],
+    correctOrder: ["step1", "step3", "step2", "step4", "step5", "step6"]
+  }
+];
 
 export default function IncidentResponseLab({ activity, userId, progress }: IncidentResponseLabProps) {
   const router = useRouter();
@@ -58,15 +193,76 @@ export default function IncidentResponseLab({ activity, userId, progress }: Inci
   const [showSolutions, setShowSolutions] = useState<Record<string, boolean>>({});
   const [score, setScore] = useState(0);
   const [showResults, setShowResults] = useState(false);
+  
+  // Parse content safely
+  const [logs, setLogs] = useState<LogEntry[]>([]);
+  const [playbooks, setPlaybooks] = useState<Playbook[]>([]);
+  const [containmentScenarios, setContainmentScenarios] = useState<ContainmentScenario[]>([]);
 
-  // Parse content
-  const content = typeof activity.content === 'string'
-    ? JSON.parse(activity.content)
-    : activity.content;
+  // Initialize content data
+  useEffect(() => {
+    try {
+      let parsedContent;
+      if (typeof activity.content === 'string') {
+        try {
+          parsedContent = JSON.parse(activity.content);
+        } catch (e) {
+          console.error("Failed to parse activity content:", e);
+          parsedContent = {};
+        }
+      } else {
+        parsedContent = activity.content || {};
+      }
 
-  const logs: LogEntry[] = content.logs || [];
-  const playbooks: Playbook[] = content.playbooks || [];
-  const containmentScenarios = content.containmentScenarios || [];
+      // Use provided content or fall back to defaults
+      const logsData = parsedContent?.logs && parsedContent.logs.length > 0 
+        ? parsedContent.logs 
+        : defaultLogs;
+      
+      const playbooksData = parsedContent?.playbooks && parsedContent.playbooks.length > 0 
+        ? parsedContent.playbooks 
+        : defaultPlaybooks;
+      
+      const scenariosData = parsedContent?.containmentScenarios && parsedContent.containmentScenarios.length > 0 
+        ? parsedContent.containmentScenarios 
+        : defaultContainmentScenarios;
+
+      setLogs(logsData);
+      setPlaybooks(playbooksData);
+      setContainmentScenarios(scenariosData);
+
+      // Initialize playbook steps order
+      const initialPlaybookSteps: Record<string, string[]> = {};
+      playbooksData.forEach((playbook: Playbook) => {
+        if (!playbookSteps[playbook.id]) {
+          // Create a randomized initial order of steps
+          const initialSteps = [...(playbook.steps || []).map((step: PlaybookStep) => step.id)];
+          
+          // Shuffle the array
+          for (let i = initialSteps.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [initialSteps[i], initialSteps[j]] = [initialSteps[j], initialSteps[i]];
+          }
+          
+          initialPlaybookSteps[playbook.id] = initialSteps;
+        }
+      });
+      
+      if (Object.keys(initialPlaybookSteps).length > 0) {
+        setPlaybookSteps(prev => ({
+          ...prev,
+          ...initialPlaybookSteps
+        }));
+      }
+    } catch (error) {
+      console.error("Error initializing lab content:", error);
+      
+      // Set defaults if there's an error
+      setLogs(defaultLogs);
+      setPlaybooks(defaultPlaybooks);
+      setContainmentScenarios(defaultContainmentScenarios);
+    }
+  }, [activity.content, playbookSteps]);
 
   const handleToggleSolution = (id: string) => {
     setShowSolutions(prev => ({
@@ -89,10 +285,16 @@ export default function IncidentResponseLab({ activity, userId, progress }: Inci
     }));
   };
 
-  const handlePlaybookStepChange = (playbookId: string, stepOrder: string[]) => {
+  const handlePlaybookDragEnd = (result: any, playbookId: string) => {
+    if (!result.destination) return;
+    
+    const items = Array.from(playbookSteps[playbookId] || []);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+    
     setPlaybookSteps(prev => ({
       ...prev,
-      [playbookId]: stepOrder
+      [playbookId]: items
     }));
   };
 
@@ -321,11 +523,26 @@ export default function IncidentResponseLab({ activity, userId, progress }: Inci
     );
   }
 
+  // Show loading state if content isn't loaded yet
+  if (logs.length === 0 && playbooks.length === 0 && containmentScenarios.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <div className="animate-pulse h-8 w-48 bg-gray-700 rounded mx-auto mb-4"></div>
+        <div className="animate-pulse h-4 w-64 bg-gray-800 rounded mx-auto mb-8"></div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="animate-pulse h-32 bg-black/30 rounded"></div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold">{content.title || "Incident Response Lab"}</h2>
-        <p className="text-gray-400 mt-1">{content.description || "Practice incident response procedures and decision-making."}</p>
+        <h2 className="text-2xl font-bold">Incident Response Lab</h2>
+        <p className="text-gray-400 mt-1">Practice incident response procedures and decision-making in a simulated security breach scenario.</p>
       </div>
 
       <Tabs defaultValue="logs" value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -365,30 +582,41 @@ export default function IncidentResponseLab({ activity, userId, progress }: Inci
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {logs.map((log) => (
-                      <TableRow key={log.id}>
-                        <TableCell>
-                          <input
-                            type="checkbox"
-                            checked={!!selectedLogs[log.id]}
-                            onChange={(e) => handleLogSelection(log.id, e.target.checked)}
-                            className="w-4 h-4"
-                          />
+                    {logs && logs.length > 0 ? (
+                      logs.map((log) => (
+                        <TableRow key={log.id}>
+                          <TableCell>
+                            <input
+                              type="checkbox"
+                              checked={!!selectedLogs[log.id]}
+                              onChange={(e) => handleLogSelection(log.id, e.target.checked)}
+                              className="w-4 h-4"
+                            />
+                          </TableCell>
+                          <TableCell>{log.timestamp}</TableCell>
+                          <TableCell>{log.source}</TableCell>
+                          <TableCell>
+                            <Badge variant={
+                              log.level === "CRITICAL" ? "destructive" : 
+                              log.level === "ERROR" ? "destructive" : 
+                              log.level === "WARNING" ? "default" : "outline"
+                            }>
+                              {log.level}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="font-mono text-xs">{log.message}</TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center py-4">
+                          <div className="flex flex-col items-center justify-center space-y-2">
+                            <AlertTriangle className="h-8 w-8 text-yellow-500" />
+                            <p>Loading log data...</p>
+                          </div>
                         </TableCell>
-                        <TableCell>{log.timestamp}</TableCell>
-                        <TableCell>{log.source}</TableCell>
-                        <TableCell>
-                          <Badge variant={
-                            log.level === "critical" ? "destructive" : 
-                            log.level === "error" ? "destructive" : 
-                            log.level === "warning" ? "default" : "outline"
-                          }>
-                            {log.level}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="font-mono text-xs">{log.message}</TableCell>
                       </TableRow>
-                    ))}
+                    )}
                   </TableBody>
                 </Table>
                 
@@ -441,44 +669,46 @@ export default function IncidentResponseLab({ activity, userId, progress }: Inci
             </CardHeader>
             <CardContent>
               <div className="space-y-8">
-                {containmentScenarios.map((scenario) => (
-                  <div key={scenario.id} className="p-4 bg-black/20 rounded-md">
-                    <h3 className="text-lg font-medium mb-2">{scenario.title}</h3>
-                    <p className="mb-4">{scenario.description}</p>
-                    
-                    <RadioGroup
-                      value={containmentActions[scenario.id] || ""}
-                      onValueChange={(value) => handleContainmentAction(scenario.id, value)}
-                    >
-                      {scenario.actions.map((action) => (
-                        <div key={action.id} className="flex items-start space-x-2 mt-3">
-                          <RadioGroupItem id={`action-${scenario.id}-${action.id}`} value={action.id} />
-                          <div>
-                            <Label htmlFor={`action-${scenario.id}-${action.id}`} className="font-medium">
-                              {action.name}
-                            </Label>
-                            <p className="text-sm text-gray-400">{action.description}</p>
+                {containmentScenarios.length > 0 ? (
+                  containmentScenarios.map((scenario) => (
+                    <div key={scenario.id} className="p-4 bg-black/20 rounded-md">
+                      <h3 className="text-lg font-medium mb-2">{scenario.title}</h3>
+                      <p className="mb-4">{scenario.description}</p>
+                      
+                      <RadioGroup
+                        value={containmentActions[scenario.id] || ""}
+                        onValueChange={(value) => handleContainmentAction(scenario.id, value)}
+                      >
+                        {scenario.options.map((option, index) => (
+                          <div key={`option-${index}`} className="flex items-start space-x-2 mt-3">
+                            <RadioGroupItem id={`option-${scenario.id}-${index}`} value={option} />
+                            <Label htmlFor={`option-${scenario.id}-${index}`} className="text-sm">{option}</Label>
                           </div>
+                        ))}
+                      </RadioGroup>
+                      
+                      <Button 
+                        variant="link" 
+                        onClick={() => handleToggleSolution(scenario.id)}
+                        className="p-0 h-auto font-normal text-blue-400 mt-4"
+                      >
+                        {showSolutions[scenario.id] ? "Hide Solution" : "Show Solution"}
+                      </Button>
+                      
+                      {showSolutions[scenario.id] && (
+                        <div className="mt-2 p-4 bg-black/40 rounded-md">
+                          <h4 className="font-medium mb-2">Correct Containment Approach:</h4>
+                          <p className="text-sm">{scenario.solution}</p>
                         </div>
-                      ))}
-                    </RadioGroup>
-                    
-                    <Button 
-                      variant="link" 
-                      onClick={() => handleToggleSolution(scenario.id)}
-                      className="p-0 h-auto font-normal text-blue-400 mt-4"
-                    >
-                      {showSolutions[scenario.id] ? "Hide Solution" : "Show Solution"}
-                    </Button>
-                    
-                    {showSolutions[scenario.id] && (
-                      <div className="mt-2 p-4 bg-black/40 rounded-md">
-                        <h4 className="font-medium mb-2">Correct Containment Approach:</h4>
-                        <p>{scenario.solution}</p>
-                      </div>
-                    )}
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-6">
+                    <AlertTriangle className="h-12 w-12 text-yellow-500 mx-auto mb-2" />
+                    <p>No containment scenarios available</p>
                   </div>
-                ))}
+                )}
               </div>
             </CardContent>
           </Card>
@@ -495,49 +725,79 @@ export default function IncidentResponseLab({ activity, userId, progress }: Inci
             </CardHeader>
             <CardContent>
               <div className="space-y-8">
-                {playbooks.map((playbook) => (
-                  <div key={playbook.id} className="p-4 bg-black/20 rounded-md">
-                    <h3 className="text-lg font-medium mb-2">{playbook.name}</h3>
-                    <p className="mb-4">Arrange these incident response steps in the correct order:</p>
-                    
-                    <div className="space-y-2">
-                      {playbook.steps.map((step) => (
-                        <div key={step.id} className="flex items-center p-2 bg-black/20 rounded border border-gray-700">
-                          <span className="mr-2 text-sm">{step.order}.</span>
-                          <p>{step.action}</p>
+                {playbooks.length > 0 ? (
+                  playbooks.map((playbook) => (
+                    <div key={playbook.id} className="p-4 bg-black/20 rounded-md">
+                      <h3 className="text-lg font-medium mb-2">{playbook.title}</h3>
+                      <p className="mb-4">{playbook.description}</p>
+                      
+                      <DragDropContext onDragEnd={(result) => handlePlaybookDragEnd(result, playbook.id)}>
+                        <Droppable droppableId={`playbook-${playbook.id}`}>
+                          {(provided) => (
+                            <div
+                              {...provided.droppableProps}
+                              ref={provided.innerRef}
+                              className="space-y-2"
+                            >
+                              {(playbookSteps[playbook.id] || []).map((stepId, index) => {
+                                const step = playbook.steps.find(s => s.id === stepId);
+                                return step ? (
+                                  <Draggable key={step.id} draggableId={step.id} index={index}>
+                                    {(provided) => (
+                                      <div
+                                        ref={provided.innerRef}
+                                        {...provided.draggableProps}
+                                        {...provided.dragHandleProps}
+                                        className="flex items-center p-3 bg-gray-800 rounded border border-gray-700 cursor-move"
+                                      >
+                                        <span className="mr-2 text-sm font-mono">{index + 1}.</span>
+                                        <p className="text-sm">{step.action}</p>
+                                      </div>
+                                    )}
+                                  </Draggable>
+                                ) : null;
+                              })}
+                              {provided.placeholder}
+                            </div>
+                          )}
+                        </Droppable>
+                      </DragDropContext>
+                      
+                      <Button 
+                        variant="link" 
+                        onClick={() => handleToggleSolution(playbook.id)}
+                        className="p-0 h-auto font-normal text-blue-400 mt-4"
+                      >
+                        {showSolutions[playbook.id] ? "Hide Solution" : "Show Solution"}
+                      </Button>
+                      
+                      {showSolutions[playbook.id] && (
+                        <div className="mt-2 p-4 bg-black/40 rounded-md">
+                          <h4 className="font-medium mb-2">Correct Playbook Order:</h4>
+                          <ol className="list-decimal pl-5 space-y-1">
+                            {playbook.correctOrder.map((stepId) => {
+                              const step = playbook.steps.find(s => s.id === stepId);
+                              return step ? (
+                                <li key={stepId} className="text-sm">{step.action}</li>
+                              ) : null;
+                            })}
+                          </ol>
+                          
+                          <p className="mt-4 text-sm">
+                            Following this sequence ensures a structured response with proper evidence preservation,
+                            effective containment, thorough eradication, and complete recovery while maintaining
+                            proper documentation.
+                          </p>
                         </div>
-                      ))}
+                      )}
                     </div>
-                    
-                    <Button 
-                      variant="link" 
-                      onClick={() => handleToggleSolution(playbook.id)}
-                      className="p-0 h-auto font-normal text-blue-400 mt-4"
-                    >
-                      {showSolutions[playbook.id] ? "Hide Solution" : "Show Solution"}
-                    </Button>
-                    
-                    {showSolutions[playbook.id] && (
-                      <div className="mt-2 p-4 bg-black/40 rounded-md">
-                        <h4 className="font-medium mb-2">Correct Playbook Order:</h4>
-                        <ol className="list-decimal pl-5 space-y-1">
-                          {playbook.correctOrder.map((stepId) => {
-                            const step = playbook.steps.find(s => s.id === stepId);
-                            return step ? (
-                              <li key={stepId}>{step.action}</li>
-                            ) : null;
-                          })}
-                        </ol>
-                        
-                        <p className="mt-4 text-sm">
-                          Following this sequence ensures a structured response with proper evidence preservation,
-                          effective containment, thorough eradication, and complete recovery while maintaining
-                          proper documentation.
-                        </p>
-                      </div>
-                    )}
+                  ))
+                ) : (
+                  <div className="text-center py-6">
+                    <AlertTriangle className="h-12 w-12 text-yellow-500 mx-auto mb-2" />
+                    <p>No playbooks available</p>
                   </div>
-                ))}
+                )}
               </div>
             </CardContent>
           </Card>

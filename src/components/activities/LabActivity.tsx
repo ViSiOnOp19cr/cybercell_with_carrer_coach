@@ -91,10 +91,10 @@ export default function LabActivity({ activity, userId, progress }: LabActivityP
   const isMFADemoLab = content.title === "Multi-Factor Authentication Demo";
   
   // Level 6-10 labs
-  const isSocialEngineeringLab = content.title === "Social Engineering Lab";
+  const isSocialEngineeringLab = content.title === "Social Engineering Lab" || content.title === "Phishing Analysis Lab";
   const isMalwareAnalysisLab = content.title === "Malware Analysis Lab";
-  const isDigitalForensicsLab = content.title === "Digital Forensics Lab";
-  const isIncidentResponseLab = content.title === "Incident Response Lab";
+  const isDigitalForensicsLab = content.title === "Digital Forensics Lab" || content.title === "Digital Evidence Analysis Lab";
+  const isIncidentResponseLab = content.title === "Incident Response Lab" || content.title === "Incident Response Simulation";
   const isAPTLab = content.title === "Advanced Persistent Threats Lab";
   
   // If this is a Security Detective lab, render the specialized component
@@ -226,7 +226,9 @@ export default function LabActivity({ activity, userId, progress }: LabActivityP
   }
   
   // For standard labs, continue with existing implementation
-  const currentTask = content.tasks[currentTaskIndex];
+  // Ensure content.tasks exists and has elements before accessing
+  const tasks = content.tasks || [];
+  const currentTask = tasks.length > 0 ? tasks[currentTaskIndex] : null;
   
   const handleAnswerChange = (taskId: string, value: string) => {
     setAnswers({
@@ -250,7 +252,7 @@ export default function LabActivity({ activity, userId, progress }: LabActivityP
   };
   
   const handleNextTask = () => {
-    if (currentTaskIndex < content.tasks.length - 1) {
+    if (currentTaskIndex < tasks.length - 1) {
       setCurrentTaskIndex(currentTaskIndex + 1);
     }
   };
@@ -415,101 +417,109 @@ export default function LabActivity({ activity, userId, progress }: LabActivityP
       </Tabs>
       
       {/* Current Task */}
-      <div className="border border-gray-800 rounded-lg p-6 bg-black/20">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold text-white">
-            Task {currentTaskIndex + 1} of {content.tasks.length}
-          </h3>
+      {currentTask ? (
+        <div className="border border-gray-800 rounded-lg p-6 bg-black/20">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold text-white">
+              Task {currentTaskIndex + 1} of {tasks.length}
+            </h3>
+            
+            <div className="flex space-x-2">
+              {currentTask.hint && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => toggleHint(currentTask.id)}
+                >
+                  {showHints[currentTask.id] ? "Hide Hint" : "Show Hint"}
+                </Button>
+              )}
+              
+              {currentTask.solution && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => toggleSolution(currentTask.id)}
+                >
+                  {showSolutions[currentTask.id] ? "Hide Solution" : "Show Solution"}
+                </Button>
+              )}
+            </div>
+          </div>
           
-          <div className="flex space-x-2">
-            {currentTask.hint && (
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => toggleHint(currentTask.id)}
-              >
-                {showHints[currentTask.id] ? "Hide Hint" : "Show Hint"}
-              </Button>
+          <div className="space-y-4">
+            <div className="prose prose-invert max-w-none text-white">
+              <div className="text-white" dangerouslySetInnerHTML={{ __html: currentTask.description }} />
+            </div>
+            
+            {showHints[currentTask.id] && currentTask.hint && (
+              <Card className="bg-yellow-950/20 border-yellow-500/30">
+                <CardHeader className="py-3">
+                  <CardTitle className="text-sm text-white">Hint</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-yellow-300">{currentTask.hint}</p>
+                </CardContent>
+              </Card>
             )}
             
-            {currentTask.solution && (
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => toggleSolution(currentTask.id)}
-              >
-                {showSolutions[currentTask.id] ? "Hide Solution" : "Show Solution"}
-              </Button>
+            {showSolutions[currentTask.id] && currentTask.solution && (
+              <Card className="bg-green-950/20 border-green-500/30">
+                <CardHeader className="py-3">
+                  <CardTitle className="text-sm text-white">Solution</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="prose prose-invert max-w-none text-white">
+                    <div className="text-white" dangerouslySetInnerHTML={{ __html: currentTask.solution }} />
+                  </div>
+                </CardContent>
+              </Card>
             )}
+            
+            <div className="space-y-2">
+              <label className="text-sm text-white">Your Answer/Notes:</label>
+              <Textarea
+                value={answers[currentTask.id] || ''}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleAnswerChange(currentTask.id, e.target.value)}
+                placeholder="Enter your answer or notes here..."
+                className="min-h-[120px]"
+              />
+            </div>
           </div>
         </div>
-        
-        <div className="space-y-4">
-          <div className="prose prose-invert max-w-none text-white">
-            <div className="text-white" dangerouslySetInnerHTML={{ __html: currentTask.description }} />
-          </div>
-          
-          {showHints[currentTask.id] && currentTask.hint && (
-            <Card className="bg-yellow-950/20 border-yellow-500/30">
-              <CardHeader className="py-3">
-                <CardTitle className="text-sm text-white">Hint</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-yellow-300">{currentTask.hint}</p>
-              </CardContent>
-            </Card>
-          )}
-          
-          {showSolutions[currentTask.id] && currentTask.solution && (
-            <Card className="bg-green-950/20 border-green-500/30">
-              <CardHeader className="py-3">
-                <CardTitle className="text-sm text-white">Solution</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="prose prose-invert max-w-none text-white">
-                  <div className="text-white" dangerouslySetInnerHTML={{ __html: currentTask.solution }} />
-                </div>
-              </CardContent>
-            </Card>
-          )}
-          
-          <div className="space-y-2">
-            <label className="text-sm text-white">Your Answer/Notes:</label>
-            <Textarea
-              value={answers[currentTask.id] || ''}
-              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleAnswerChange(currentTask.id, e.target.value)}
-              placeholder="Enter your answer or notes here..."
-              className="min-h-[120px]"
-            />
-          </div>
+      ) : (
+        <div className="border border-gray-800 rounded-lg p-6 bg-black/20 text-center">
+          <p className="text-white">No tasks available for this lab.</p>
         </div>
-      </div>
+      )}
       
-      <div className="flex justify-between pt-4">
-        <Button 
-          variant="outline" 
-          onClick={handlePreviousTask}
-          disabled={currentTaskIndex === 0}
-        >
-          Previous Task
-        </Button>
-        
-        {currentTaskIndex === content.tasks.length - 1 ? (
+      {tasks.length > 0 && (
+        <div className="flex justify-between pt-4">
           <Button 
-            onClick={handleSubmitLab}
-            disabled={isSubmitting || Object.keys(answers).length < content.tasks.length}
+            variant="outline" 
+            onClick={handlePreviousTask}
+            disabled={currentTaskIndex === 0}
           >
-            {isSubmitting ? "Completing..." : "Complete Lab"}
+            Previous Task
           </Button>
-        ) : (
-          <Button 
-            onClick={handleNextTask}
-            disabled={!answers[currentTask?.id]}
-          >
-            Next Task
-          </Button>
-        )}
-      </div>
+          
+          {currentTaskIndex === tasks.length - 1 ? (
+            <Button 
+              onClick={handleSubmitLab}
+              disabled={isSubmitting || Object.keys(answers).length < tasks.length}
+            >
+              {isSubmitting ? "Completing..." : "Complete Lab"}
+            </Button>
+          ) : (
+            <Button 
+              onClick={handleNextTask}
+              disabled={!currentTask || !answers[currentTask.id]}
+            >
+              Next Task
+            </Button>
+          )}
+        </div>
+      )}
     </div>
   );
 } 

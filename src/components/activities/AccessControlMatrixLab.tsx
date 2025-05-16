@@ -250,6 +250,7 @@ export default function AccessControlMatrixLab({ activity, userId, progress }: A
       }
       
       setIsCompleted(true);
+      setActiveTab(""); // Clear active tab to show the completion screen
       
       // Refresh the page data
       router.refresh();
@@ -261,8 +262,115 @@ export default function AccessControlMatrixLab({ activity, userId, progress }: A
     }
   };
 
-  // If already completed, show the completed state
-  if (isCompleted) {
+  // Reset the lab for reattempt
+  const handleReattempt = async () => {
+    try {
+      setIsSubmitting(true);
+      
+      // Reset the progress on the server
+      const response = await fetch(`/api/activities/${activity.id}/progress`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          isCompleted: false,
+          score: 0,
+          pointsEarned: 0,
+          answers: {}
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error("Failed to reset progress");
+      }
+      
+      // Reset all state to initial values
+      setUsers([
+        { id: "user1", name: "Admin User", role: "admin" },
+        { id: "user2", name: "Regular User", role: "user" },
+        { id: "user3", name: "Guest User", role: "guest" },
+        { id: "user4", name: "Manager", role: "manager" },
+      ]);
+      
+      setResources([
+        { id: "res1", name: "User Database", type: "database", icon: <Database className="h-4 w-4" /> },
+        { id: "res2", name: "Config Files", type: "file", icon: <FileText className="h-4 w-4" /> },
+        { id: "res3", name: "System Settings", type: "settings", icon: <Settings className="h-4 w-4" /> },
+        { id: "res4", name: "Public Documents", type: "document", icon: <FileText className="h-4 w-4" /> },
+      ]);
+      
+      setPermissions([
+        // Admin permissions
+        { userId: "user1", resourceId: "res1", read: true, write: true, execute: true, delete: true },
+        { userId: "user1", resourceId: "res2", read: true, write: true, execute: true, delete: true },
+        { userId: "user1", resourceId: "res3", read: true, write: true, execute: true, delete: true },
+        { userId: "user1", resourceId: "res4", read: true, write: true, execute: true, delete: true },
+        
+        // Regular user permissions
+        { userId: "user2", resourceId: "res1", read: false, write: false, execute: false, delete: false },
+        { userId: "user2", resourceId: "res2", read: true, write: false, execute: false, delete: false },
+        { userId: "user2", resourceId: "res3", read: false, write: false, execute: false, delete: false },
+        { userId: "user2", resourceId: "res4", read: true, write: true, execute: false, delete: false },
+        
+        // Guest permissions
+        { userId: "user3", resourceId: "res1", read: false, write: false, execute: false, delete: false },
+        { userId: "user3", resourceId: "res2", read: false, write: false, execute: false, delete: false },
+        { userId: "user3", resourceId: "res3", read: false, write: false, execute: false, delete: false },
+        { userId: "user3", resourceId: "res4", read: true, write: false, execute: false, delete: false },
+        
+        // Manager permissions
+        { userId: "user4", resourceId: "res1", read: true, write: false, execute: false, delete: false },
+        { userId: "user4", resourceId: "res2", read: true, write: true, execute: false, delete: false },
+        { userId: "user4", resourceId: "res3", read: true, write: false, execute: false, delete: false },
+        { userId: "user4", resourceId: "res4", read: true, write: true, execute: false, delete: true },
+      ]);
+      
+      setSecurityIssues([
+        {
+          id: "issue1",
+          description: "Guest users should not have write access to any resources",
+          severity: "medium",
+          fixed: false
+        },
+        {
+          id: "issue2",
+          description: "Regular users should not have delete permissions on Public Documents",
+          severity: "low",
+          fixed: false
+        },
+        {
+          id: "issue3",
+          description: "Principle of least privilege: Manager role has excessive permissions",
+          severity: "medium",
+          fixed: false
+        },
+        {
+          id: "issue4",
+          description: "Database access should be restricted to admin only",
+          severity: "high",
+          fixed: false
+        }
+      ]);
+      
+      setAccessAttempts([]);
+      setActiveUser("user2");
+      setActiveTab("lab");
+      setIsCompleted(false);
+      
+      // Refresh the page data
+      router.refresh();
+      toast.success("Lab has been reset. You can now try again!");
+    } catch (error) {
+      console.error("Error resetting lab:", error);
+      toast.error("Failed to reset lab progress");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Show completed state as a standalone page when not viewing tabs
+  if (isCompleted && !activeTab) {
     return (
       <div className="text-center py-6">
         <div className="mb-4">
@@ -272,8 +380,16 @@ export default function AccessControlMatrixLab({ activity, userId, progress }: A
         <p className="text-white mb-6">You've successfully completed the Access Control Matrix lab.</p>
         
         <div className="flex justify-center space-x-4">
-          <Button variant="outline" onClick={() => setIsCompleted(false)}>
+          <Button 
+            variant="outline" 
+            onClick={() => {
+              setActiveTab("lab");
+            }}
+          >
             Review Lab
+          </Button>
+          <Button variant="outline" onClick={handleReattempt}>
+            Try Again
           </Button>
           <Button asChild>
             <a href={`/levels/${activity.levelId}`}>
@@ -287,6 +403,20 @@ export default function AccessControlMatrixLab({ activity, userId, progress }: A
 
   return (
     <div className="space-y-6">
+      {isCompleted && (
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center">
+            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 flex items-center gap-1 px-3 py-1 mr-2">
+              <CheckCircle className="h-4 w-4" />
+              Completed
+            </Badge>
+            <span className="text-white text-sm">You've successfully completed this lab</span>
+          </div>
+          <Button variant="outline" size="sm" onClick={handleReattempt} className="h-8">
+            Try Again
+          </Button>
+        </div>
+      )}
       <Tabs defaultValue="instructions" value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid grid-cols-3 mb-6">
           <TabsTrigger value="instructions">Instructions</TabsTrigger>
@@ -585,12 +715,21 @@ export default function AccessControlMatrixLab({ activity, userId, progress }: A
           </Card>
           
           <div className="flex justify-end">
-            <Button 
-              onClick={handleSubmitLab}
-              disabled={isSubmitting || !securityIssues.every(issue => issue.fixed)}
-            >
-              {isSubmitting ? "Submitting..." : "Complete Lab"}
-            </Button>
+            {isCompleted ? (
+              <Button 
+                variant="outline"
+                onClick={handleReattempt}
+              >
+                Try Again
+              </Button>
+            ) : (
+              <Button 
+                onClick={handleSubmitLab}
+                disabled={isSubmitting || !securityIssues.every(issue => issue.fixed)}
+              >
+                {isSubmitting ? "Submitting..." : "Complete Lab"}
+              </Button>
+            )}
           </div>
         </TabsContent>
         

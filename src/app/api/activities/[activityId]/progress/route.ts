@@ -316,6 +316,41 @@ export async function POST(
               });
             }
           }
+          
+          // Check for first completion achievement
+          const totalCompletedActivities = await db.activityProgress.count({
+            where: {
+              userId: user.id,
+              isCompleted: true
+            }
+          });
+          
+          // If this is their first completed activity
+          if (totalCompletedActivities === 1) {
+            const firstCompletionAchievement = await db.achievement.findFirst({
+              where: {
+                type: "FIRST_COMPLETION"
+              }
+            });
+            
+            if (firstCompletionAchievement) {
+              // Award the achievement
+              await db.userAchievement.upsert({
+                where: {
+                  userId_achievementId: {
+                    userId: user.id,
+                    achievementId: firstCompletionAchievement.id
+                  }
+                },
+                update: {},
+                create: {
+                  userId: user.id,
+                  achievementId: firstCompletionAchievement.id,
+                  earnedAt: new Date()
+                }
+              });
+            }
+          }
         }
       }
       

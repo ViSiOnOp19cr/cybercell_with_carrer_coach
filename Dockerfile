@@ -1,5 +1,5 @@
 # Base image
-FROM node:20-alpine AS base
+FROM node:22-alpine AS base
 
 # Set working directory
 WORKDIR /app
@@ -9,7 +9,7 @@ FROM base AS deps
 # Copy prisma files first
 COPY prisma ./prisma/
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN npm install
 
 # Setup development environment
 FROM base AS development

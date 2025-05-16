@@ -79,7 +79,9 @@ export default function SocialEngineeringLab({ activity, userId, progress }: Soc
     ? JSON.parse(activity.content)
     : activity.content;
 
-  const emailScenarios: EmailScenario[] = content.emailScenarios || [];
+  // Support both data structures - phishingExamples (used in Phishing Analysis Lab) 
+  // and emailScenarios (used in Social Engineering Lab)
+  const emailScenarios: EmailScenario[] = content.emailScenarios || content.phishingExamples || [];
   const deepfakeScenarios: DeepfakeScenario[] = content.deepfakeScenarios || [];
   const voicePhishingScenarios: VoicePhishingScenario[] = content.voicePhishingScenarios || [];
   const socialMediaScenarios: SocialMediaScenario[] = content.socialMediaScenarios || [];
