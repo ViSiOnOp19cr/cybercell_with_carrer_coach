@@ -9,15 +9,11 @@ import QuizActivity from "@/components/activities/QuizActivity";
 import LabActivity from "@/components/activities/LabActivity";
 import ReadingActivity from "@/components/activities/ReadingActivity";
 
-type Props = {
-  params: {
-    levelId: string;
-    activityId: string;
-  };
-  searchParams: { [key: string]: string | string[] | undefined };
-};
-
-export default async function ActivityPage({ params }: Props) {
+export default async function ActivityPage({
+  params,
+}: {
+  params: { levelId: string; activityId: string };
+}) {
   const { userId } = await auth();
 
   if (!userId) {
