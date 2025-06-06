@@ -2,13 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { auth } from "@clerk/nextjs/server";
 
-type RouteContext = {
-  params: {
-    activityId: string;
-  };
-};
-
-export async function POST(request: NextRequest, context: RouteContext) {
+export async function POST(
+  request: NextRequest,
+  { params }: { params: { activityId: string } }
+) {
   try {
     const { userId } = await auth();
 
@@ -34,7 +31,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
     // Get activity
     const activity = await db.activity.findUnique({
-      where: { id: parseInt(context.params.activityId) },
+      where: { id: parseInt(params.activityId) },
       include: {
         level: true,
       },
