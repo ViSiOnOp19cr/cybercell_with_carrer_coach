@@ -1,10 +1,10 @@
-import Link from "next/link";
-import { Button } from "../../../../components/ui/ai-button";
-import { getCoverLetter } from "../../../../actions/cover-letter";
-import { ArrowLeft, Download, Share } from "lucide-react";
-import { notFound } from "next/navigation";
-import { getUserOnboardingStatus } from "../../../../actions/user";
+import { auth } from "@clerk/nextjs/server";
+import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
+import { CoverLetterEditor } from "@/components/cover-letter/cover-letter-editor";
+import { CoverLetterHeader } from "@/components/cover-letter/cover-letter-header";
+import { CoverLetterSidebar } from "@/components/cover-letter/cover-letter-sidebar";
+import { CoverLetterProvider } from "@/components/cover-letter/cover-letter-context";
 
 /**
  * @typedef {Object} PageProps
@@ -15,61 +15,44 @@ import { redirect } from "next/navigation";
  * @param {PageProps} props
  */
 export default async function CoverLetterPage({ params }) {
-  const resolvedParams = await params;
-  // Check if user is onboarded
-  const { isOnboarded } = await getUserOnboardingStatus();
+  const { userId } = await auth();
 
-  if (!isOnboarded) {
+  if (!userId) {
+    redirect("/sign-in");
+  }
+
+  // Get user data
+  const user = await db.user.findUnique({
+    where: { clerkId: userId },
+  });
+
+  if (!user) {
     redirect("/onboarding");
   }
 
-  const coverLetter = await getCoverLetter(resolvedParams.id);
+  // Get cover letter data
+  const coverLetter = await db.coverLetter.findUnique({
+    where: {
+      id: params.id,
+      userId: user.id,
+    },
+  });
 
   if (!coverLetter) {
-    notFound();
+    redirect("/ai-cover-letter");
   }
 
   return (
-    <div className="max-w-3xl mx-auto">
-      <div className="flex items-center justify-between mb-5">
-        <h1 className="text-4xl font-bold gradient-title">
-          {coverLetter.jobTitle}
-        </h1>
-        <div className="flex gap-2">
-          <Link href="/ai-cover-letter">
-            <Button variant="outline">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back
-            </Button>
-          </Link>
+    <CoverLetterProvider initialData={coverLetter}>
+      <div className="flex h-screen">
+        <CoverLetterSidebar />
+        <div className="flex-1 flex flex-col">
+          <CoverLetterHeader />
+          <main className="flex-1 overflow-y-auto">
+            <CoverLetterEditor />
+          </main>
         </div>
       </div>
-
-      <div className="bg-white text-black rounded-lg p-8 shadow-lg font-serif">
-        <div className="mb-4">
-          <h2 className="text-xl font-bold">{coverLetter.userName}</h2>
-          {coverLetter.userEmail && (
-            <p className="text-gray-600">{coverLetter.userEmail}</p>
-          )}
-        </div>
-
-        <div className="mb-4">
-          <p className="font-bold">
-            {coverLetter.companyName && `${coverLetter.companyName}`}
-          </p>
-        </div>
-
-        <div className="mb-6">
-          <p className="font-bold">Re: {coverLetter.jobTitle}</p>
-        </div>
-
-        <div
-          dangerouslySetInnerHTML={{
-            __html: coverLetter.content.replace(/\n/g, "<br>"),
-          }}
-          className="whitespace-pre-wrap leading-relaxed"
-        />
-      </div>
-    </div>
+    </CoverLetterProvider>
   );
 }

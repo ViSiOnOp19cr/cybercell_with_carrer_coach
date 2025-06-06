@@ -2,13 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { auth } from "@clerk/nextjs/server";
 
-type RouteContext = {
-  params: {
-    activityId: string;
-  };
-};
-
-export async function POST(req: NextRequest, context: RouteContext) {
+export async function POST(
+  req: NextRequest,
+  { params }: { params: { activityId: string } }
+) {
   try {
     const { userId } = await auth();
 
@@ -44,16 +41,15 @@ export async function POST(req: NextRequest, context: RouteContext) {
 
     let activityId;
     try {
-      activityId = parseInt(context.params.activityId);
+      activityId = parseInt(params.activityId);
       if (isNaN(activityId)) {
-        throw new Error(`Invalid activity ID: ${context.params.activityId}`);
+        throw new Error(`Invalid activity ID: ${params.activityId}`);
       }
     } catch (error) {
       console.error("Error parsing activity ID:", error);
-      return new NextResponse(
-        `Invalid activity ID: ${context.params.activityId}`,
-        { status: 400 }
-      );
+      return new NextResponse(`Invalid activity ID: ${params.activityId}`, {
+        status: 400,
+      });
     }
 
     // Get the activity to check its point value

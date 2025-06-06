@@ -40,12 +40,6 @@ interface LevelWithActivities extends Level {
   requiredActivities: number;
 }
 
-interface PageProps {
-  params: Promise<{
-    levelId: string;
-  }>;
-}
-
 // Helper function to get activity icon based on type
 function getActivityIcon(type: ActivityType) {
   switch (type) {
@@ -177,8 +171,11 @@ async function getLevelWithActivities(
   }
 }
 
-export default async function LevelDetailPage({ params }: PageProps) {
-  const resolvedParams = await params;
+export default async function LevelDetailPage({
+  params,
+}: {
+  params: { levelId: string };
+}) {
   const { userId } = await auth();
 
   if (!userId) {
@@ -186,10 +183,7 @@ export default async function LevelDetailPage({ params }: PageProps) {
   }
 
   // Get user data
-  const levelData = await getLevelWithActivities(
-    resolvedParams.levelId,
-    userId
-  );
+  const levelData = await getLevelWithActivities(params.levelId, userId);
 
   if (!levelData) {
     return <div>Level not found or error fetching level data</div>;
