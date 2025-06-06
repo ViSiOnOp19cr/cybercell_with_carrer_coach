@@ -9,11 +9,15 @@ import QuizActivity from "@/components/activities/QuizActivity";
 import LabActivity from "@/components/activities/LabActivity";
 import ReadingActivity from "@/components/activities/ReadingActivity";
 
-export default async function ActivityPage({
-  params,
-}: {
-  params: { levelId: string; activityId: string };
-}) {
+interface PageProps {
+  params: Promise<{
+    levelId: string;
+    activityId: string;
+  }>;
+}
+
+export default async function ActivityPage({ params }: PageProps) {
+  const resolvedParams = await params;
   const { userId } = await auth();
 
   if (!userId) {
@@ -32,18 +36,18 @@ export default async function ActivityPage({
   // Get activity data
   const activity = await db.activity.findUnique({
     where: {
-      id: parseInt(params.activityId),
+      id: parseInt(resolvedParams.activityId),
     },
   });
 
   if (!activity) {
-    redirect(`/levels/${params.levelId}`);
+    redirect(`/levels/${resolvedParams.levelId}`);
   }
 
   // Get level data
   const level = await db.level.findUnique({
     where: {
-      id: parseInt(params.levelId),
+      id: parseInt(resolvedParams.levelId),
     },
   });
 
@@ -56,24 +60,24 @@ export default async function ActivityPage({
     where: {
       userId_activityId: {
         userId: user.id,
-        activityId: parseInt(params.activityId),
+        activityId: parseInt(resolvedParams.activityId),
       },
     },
   });
 
   // Check if activity is unlocked
   // For simplicity, we'll consider it unlocked if it exists in this level
-  const isUnlocked = activity.levelId === parseInt(params.levelId);
+  const isUnlocked = activity.levelId === parseInt(resolvedParams.levelId);
 
   if (!isUnlocked) {
-    redirect(`/levels/${params.levelId}`);
+    redirect(`/levels/${resolvedParams.levelId}`);
   }
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
       <div className="mb-8">
         <Link
-          href={`/levels/${params.levelId}`}
+          href={`/levels/${resolvedParams.levelId}`}
           className="inline-flex items-center text-sm text-blue-500 hover:text-blue-600"
         >
           <ChevronLeft className="mr-1 h-4 w-4" />
@@ -118,7 +122,9 @@ export default async function ActivityPage({
               This activity type is not currently supported in the platform.
             </p>
             <Button asChild>
-              <Link href={`/levels/${params.levelId}`}>Return to Level</Link>
+              <Link href={`/levels/${resolvedParams.levelId}`}>
+                Return to Level
+              </Link>
             </Button>
           </div>
         )}
@@ -126,7 +132,9 @@ export default async function ActivityPage({
 
       <div className="text-right mt-4">
         <Button asChild>
-          <Link href={`/levels/${params.levelId}`}>Return to Level</Link>
+          <Link href={`/levels/${resolvedParams.levelId}`}>
+            Return to Level
+          </Link>
         </Button>
       </div>
     </div>
