@@ -9,15 +9,15 @@ import QuizActivity from "@/components/activities/QuizActivity";
 import LabActivity from "@/components/activities/LabActivity";
 import ReadingActivity from "@/components/activities/ReadingActivity";
 
-interface PageProps {
+type Props = {
   params: {
     levelId: string;
     activityId: string;
   };
   searchParams: { [key: string]: string | string[] | undefined };
-}
+};
 
-export default async function ActivityPage({ params }: PageProps) {
+export default async function ActivityPage({ params }: Props) {
   const { userId } = await auth();
 
   if (!userId) {
