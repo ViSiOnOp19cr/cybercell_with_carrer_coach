@@ -1,3 +1,5 @@
+"use client";
+
 import { useCoverLetter } from "./cover-letter-context";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
