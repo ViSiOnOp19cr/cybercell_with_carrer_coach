@@ -3,26 +3,10 @@ import { db } from "@/lib/db";
 import { Activity, Level, ActivityType } from "@/lib/types";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
-} from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import {
-  ChevronLeft,
-  Terminal,
-  FileText,
-  Code,
-  Database,
-  PlayCircle,
-  CheckCircle,
-  Lock,
-} from "lucide-react";
+import { ChevronLeft, Terminal, FileText, Code, Database, PlayCircle, CheckCircle, Lock } from "lucide-react";
 
 interface ActivityWithProgress extends Activity {
   isCompleted: boolean;
@@ -40,128 +24,109 @@ interface LevelWithActivities extends Level {
   requiredActivities: number;
 }
 
-interface PageProps {
-  params: Promise<{
-    levelId: string;
-  }>;
-}
-
 // Helper function to get activity icon based on type
 function getActivityIcon(type: ActivityType) {
-  switch (type) {
-    case "QUIZ":
+  switch(type) {
+    case 'QUIZ':
       return <FileText className="h-5 w-5" />;
-    case "CODE_CHALLENGE":
+    case 'CODE_CHALLENGE':
       return <Code className="h-5 w-5" />;
-    case "LAB":
+    case 'LAB':
       return <Terminal className="h-5 w-5" />;
-    case "SIMULATION":
+    case 'SIMULATION':
       return <PlayCircle className="h-5 w-5" />;
-    case "READING":
+    case 'READING':
       return <Database className="h-5 w-5" />;
     default:
       return <Terminal className="h-5 w-5" />;
   }
 }
 
-async function getLevelWithActivities(
-  levelId: string,
-  userId: string
-): Promise<LevelWithActivities | null> {
+async function getLevelWithActivities(levelId: string, userId: string): Promise<LevelWithActivities | null> {
   try {
     // First, ensure the user exists in our database
     const user = await db.user.findUnique({
-      where: { clerkId: userId },
+      where: { clerkId: userId }
     });
-
+    
     if (!user) {
       console.error(`User with clerkId ${userId} not found in database`);
       return null;
     }
-
+    
     // Get level data with activities
     const level = await db.level.findUnique({
       where: {
-        id: parseInt(levelId),
+        id: parseInt(levelId)
       },
       include: {
         activities: {
           orderBy: {
-            order: "asc",
-          },
-        },
-      },
+            order: 'asc'
+          }
+        }
+      }
     });
-
+    
     if (!level) {
       return null;
     }
-
+    
     // Get user progress for this level
     const userProgress = await db.userProgress.findUnique({
       where: {
         userId_levelId: {
           userId: user.id,
-          levelId: level.id,
-        },
-      },
+          levelId: level.id
+        }
+      }
     });
-
+    
     // Get required activities for this level
-    const requiredActivitiesList = level.activities.filter(
-      (a: Activity) => a.isRequired
-    );
+    const requiredActivitiesList = level.activities.filter((a: Activity) => a.isRequired);
     const requiredActivitiesCount = requiredActivitiesList.length;
-
+    
     // Get user's progress on all activities in this level
     const activityProgress = await db.activityProgress.findMany({
       where: {
         userId: user.id,
         activity: {
-          levelId: level.id,
-        },
-      },
-    });
-
-    // Add progress info to activities
-    const activitiesWithProgress = level.activities.map(
-      (activity: Activity) => {
-        const progress = activityProgress.find(
-          (p: any) => p.activityId === activity.id
-        );
-
-        // An activity is unlocked if:
-        // 1. It's the first activity (order = 1)
-        // 2. All required activities that come before it are completed
-        let isUnlocked = activity.order === 1;
-
-        if (!isUnlocked && activity.order > 1) {
-          const previousRequiredActivities = level.activities.filter(
-            (a: Activity) => a.isRequired && a.order < activity.order
-          );
-
-          const allPreviousRequiredCompleted =
-            previousRequiredActivities.length === 0 ||
-            previousRequiredActivities.every((a: Activity) => {
-              const prevProgress = activityProgress.find(
-                (p: any) => p.activityId === a.id
-              );
-              return prevProgress?.isCompleted || false;
-            });
-
-          isUnlocked = allPreviousRequiredCompleted;
+          levelId: level.id
         }
-
-        return {
-          ...activity,
-          isCompleted: progress?.isCompleted || false,
-          isUnlocked,
-          pointsEarned: progress?.pointsEarned || 0,
-          attempts: progress?.attempts || 0,
-        };
       }
-    );
-
+    });
+    
+    // Add progress info to activities
+    const activitiesWithProgress = level.activities.map((activity: Activity) => {
+      const progress = activityProgress.find((p: any) => p.activityId === activity.id);
+      
+      // An activity is unlocked if:
+      // 1. It's the first activity (order = 1)
+      // 2. All required activities that come before it are completed
+      let isUnlocked = activity.order === 1;
+      
+      if (!isUnlocked && activity.order > 1) {
+        const previousRequiredActivities = level.activities
+          .filter((a: Activity) => a.isRequired && a.order < activity.order);
+        
+        const allPreviousRequiredCompleted = previousRequiredActivities.length === 0 || 
+          previousRequiredActivities.every((a: Activity) => {
+            const prevProgress = activityProgress.find((p: any) => p.activityId === a.id);
+            return prevProgress?.isCompleted || false;
+          });
+        
+        isUnlocked = allPreviousRequiredCompleted;
+      }
+      
+      return {
+        ...activity,
+        isCompleted: progress?.isCompleted || false,
+        isUnlocked,
+        pointsEarned: progress?.pointsEarned || 0,
+        attempts: progress?.attempts || 0
+      };
+    });
+    
     return {
       ...level,
       activities: activitiesWithProgress,
@@ -169,44 +134,37 @@ async function getLevelWithActivities(
       activitiesCompleted: userProgress?.activitiesCompleted || 0,
       pointsEarned: userProgress?.pointsEarned || 0,
       totalActivities: level.activities.length,
-      requiredActivities: requiredActivitiesCount,
+      requiredActivities: requiredActivitiesCount
     };
   } catch (error) {
-    console.error("Error fetching level with activities:", error);
+    console.error('Error fetching level with activities:', error);
     return null;
   }
 }
 
-export default async function LevelDetailPage({ params }: PageProps) {
-  const resolvedParams = await params;
+export default async function LevelDetailPage({ params }: { params: { levelId: string } }) {
   const { userId } = await auth();
-
+  
   if (!userId) {
     redirect("/sign-in");
   }
-
+  
   // Get user data
-  const levelData = await getLevelWithActivities(
-    resolvedParams.levelId,
-    userId
-  );
-
+  const levelData = await getLevelWithActivities(params.levelId, userId);
+  
   if (!levelData) {
     return <div>Level not found or error fetching level data</div>;
   }
-
+  
   return (
     <div className="space-y-8">
       <div className="flex items-center gap-2">
-        <Link
-          href="/levels"
-          className="text-white/85 hover:text-white flex items-center"
-        >
+        <Link href="/levels" className="text-white/85 hover:text-white flex items-center">
           <ChevronLeft className="h-5 w-5 mr-1" />
           Back to Levels
         </Link>
       </div>
-
+      
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-white">
           Level {levelData.order}: {levelData.name}
@@ -214,9 +172,11 @@ export default async function LevelDetailPage({ params }: PageProps) {
             <Badge className="ml-3 bg-green-600">Completed</Badge>
           )}
         </h1>
-        <p className="text-white/85 mt-2 max-w-3xl">{levelData.description}</p>
+        <p className="text-white/85 mt-2 max-w-3xl">
+          {levelData.description}
+        </p>
       </div>
-
+      
       {/* Progress Overview */}
       <Card className="bg-black/30 border-green-500/20">
         <CardHeader>
@@ -231,82 +191,62 @@ export default async function LevelDetailPage({ params }: PageProps) {
               <div className="flex items-center justify-between mb-1.5 text-sm">
                 <span>Level completion</span>
                 <span>
-                  {levelData.pointsEarned}/{levelData.minPointsToPass} points to
-                  pass (
-                  {Math.min(
-                    100,
-                    Math.round(
-                      (levelData.pointsEarned / levelData.minPointsToPass) * 100
-                    )
-                  )}
-                  %)
+                  {levelData.pointsEarned}/{levelData.minPointsToPass} points to pass 
+                  ({Math.min(100, Math.round((levelData.pointsEarned / levelData.minPointsToPass) * 100))}%)
                 </span>
               </div>
-              <Progress
-                value={Math.min(
-                  100,
-                  (levelData.pointsEarned / levelData.minPointsToPass) * 100
-                )}
+              <Progress 
+                value={Math.min(100, (levelData.pointsEarned / levelData.minPointsToPass) * 100)} 
                 className="h-2"
               />
             </div>
-
+            
             <div className="flex flex-wrap gap-4 text-sm text-white/85">
-              <div>
-                Completed: {levelData.activitiesCompleted}/
-                {levelData.totalActivities} activities
-              </div>
+              <div>Completed: {levelData.activitiesCompleted}/{levelData.totalActivities} activities</div>
               <div>Required: {levelData.requiredActivities} activities</div>
             </div>
           </div>
         </CardContent>
       </Card>
-
+      
       {/* Activities */}
       <div>
-        <h2 className="text-2xl font-semibold mb-4 text-white">
-          Level Activities
-        </h2>
-
+        <h2 className="text-2xl font-semibold mb-4 text-white">Level Activities</h2>
+        
         <div className="space-y-4">
           {levelData.activities.map((activity) => (
-            <Card
+            <Card 
               key={activity.id}
               className={`border ${
-                activity.isCompleted
-                  ? "border-green-500/50 bg-green-950/10"
-                  : activity.isUnlocked
-                  ? "border-blue-500/20 bg-black/40"
-                  : "border-gray-700/50 bg-gray-900/30"
+                activity.isCompleted 
+                  ? 'border-green-500/50 bg-green-950/10' 
+                  : activity.isUnlocked 
+                    ? 'border-blue-500/20 bg-black/40' 
+                    : 'border-gray-700/50 bg-gray-900/30'
               }`}
             >
               <CardHeader className="pb-3">
                 <div className="flex justify-between items-start">
                   <CardTitle className="flex items-center text-lg">
-                    <div
-                      className={`p-1.5 rounded-md mr-3 ${
-                        activity.isCompleted
-                          ? "bg-green-500/20 text-green-500"
-                          : activity.isUnlocked
-                          ? "bg-blue-500/20 text-blue-500"
-                          : "bg-gray-800 text-gray-500"
-                      }`}
-                    >
+                    <div className={`p-1.5 rounded-md mr-3 ${
+                      activity.isCompleted 
+                        ? 'bg-green-500/20 text-green-500' 
+                        : activity.isUnlocked 
+                          ? 'bg-blue-500/20 text-blue-500' 
+                          : 'bg-gray-800 text-gray-500'
+                    }`}>
                       {getActivityIcon(activity.type)}
                     </div>
                     {activity.name}
                   </CardTitle>
-
+                  
                   <div className="flex space-x-2">
                     {activity.isRequired && (
-                      <Badge
-                        variant="outline"
-                        className="border-yellow-500/30 text-yellow-500"
-                      >
+                      <Badge variant="outline" className="border-yellow-500/30 text-yellow-500">
                         Required
                       </Badge>
                     )}
-
+                    
                     {activity.isCompleted ? (
                       <Badge className="bg-green-600">
                         <CheckCircle className="h-3 w-3 mr-1" />
@@ -315,43 +255,38 @@ export default async function LevelDetailPage({ params }: PageProps) {
                     ) : activity.isUnlocked ? (
                       <Badge className="bg-blue-600">Unlocked</Badge>
                     ) : (
-                      <Badge
-                        variant="outline"
-                        className="border-gray-600 text-white"
-                      >
+                      <Badge variant="outline" className="border-gray-600 text-white">
                         <Lock className="h-3 w-3 mr-1" />
                         Locked
                       </Badge>
                     )}
                   </div>
                 </div>
-
+                
                 <CardDescription>{activity.description}</CardDescription>
               </CardHeader>
-
+              
               <CardContent>
                 <div className="flex justify-between text-sm text-white/85">
-                  <div>Type: {activity.type.replace("_", " ")}</div>
+                  <div>Type: {activity.type.replace('_', ' ')}</div>
                   <div>Points: {activity.points}</div>
                   {activity.attempts > 0 && (
                     <div>Attempts: {activity.attempts}</div>
                   )}
                 </div>
               </CardContent>
-
+              
               <CardFooter>
                 {activity.isUnlocked ? (
-                  <Link
+                  <Link 
                     href={`/levels/${levelData.id}/activities/${activity.id}`}
                     className={`w-full py-2.5 px-4 rounded text-center ${
-                      activity.isCompleted
-                        ? "bg-green-600 hover:bg-green-700 text-white"
-                        : "bg-blue-600 hover:bg-blue-700 text-white"
+                      activity.isCompleted 
+                        ? 'bg-green-600 hover:bg-green-700 text-white' 
+                        : 'bg-blue-600 hover:bg-blue-700 text-white'
                     } font-medium text-sm`}
                   >
-                    {activity.isCompleted
-                      ? "Review Activity"
-                      : "Start Activity"}
+                    {activity.isCompleted ? 'Review Activity' : 'Start Activity'}
                   </Link>
                 ) : (
                   <button
@@ -367,19 +302,15 @@ export default async function LevelDetailPage({ params }: PageProps) {
           ))}
         </div>
       </div>
-
+      
       {/* If no activities */}
       {levelData.activities.length === 0 && (
         <div className="flex flex-col items-center justify-center py-10 text-center">
           <Terminal className="h-16 w-16 text-gray-500 mb-4" />
-          <h2 className="text-2xl font-bold text-white mb-2">
-            No Activities Found
-          </h2>
-          <p className="text-white/85 mb-6">
-            This level doesn't have any activities yet.
-          </p>
+          <h2 className="text-2xl font-bold text-white mb-2">No Activities Found</h2>
+          <p className="text-white/85 mb-6">This level doesn't have any activities yet.</p>
         </div>
       )}
     </div>
   );
-}
+} 
