@@ -6,13 +6,15 @@ import { notFound } from "next/navigation";
 import { getUserOnboardingStatus } from "../../../../actions/user";
 import { redirect } from "next/navigation";
 
-interface PageProps {
-  params: Promise<{
-    id: string,
-  }>;
-}
+/**
+ * @typedef {Object} PageProps
+ * @property {Promise<{id: string}>} params
+ */
 
-export default async function CoverLetterPage({ params }: PageProps) {
+/**
+ * @param {PageProps} props
+ */
+export default async function CoverLetterPage({ params }) {
   const resolvedParams = await params;
   // Check if user is onboarded
   const { isOnboarded } = await getUserOnboardingStatus();
