@@ -2,13 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { auth } from "@clerk/nextjs/server";
 
-type RouteSegment = {
-  params: {
-    activityId: string;
-  };
-};
-
-export async function POST(request: NextRequest, { params }: RouteSegment) {
+export async function POST(
+  request: NextRequest,
+  { params }: { params: { activityId: string } }
+) {
   try {
     const { userId } = await auth();
 
