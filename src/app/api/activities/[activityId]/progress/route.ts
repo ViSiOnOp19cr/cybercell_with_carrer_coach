@@ -2,10 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { auth } from "@clerk/nextjs/server";
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { activityId: string } }
-) {
+type RouteContext = {
+  params: {
+    activityId: string;
+  };
+};
+
+export async function POST(request: NextRequest, context: RouteContext) {
   try {
     const { userId } = await auth();
 
@@ -13,7 +16,7 @@ export async function POST(
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    const body = await req.json();
+    const body = await request.json();
     const { isCompleted, pointsEarned } = body;
 
     if (typeof isCompleted !== "boolean" || typeof pointsEarned !== "number") {
@@ -31,7 +34,10 @@ export async function POST(
 
     // Get activity
     const activity = await db.activity.findUnique({
-      where: { id: parseInt(params.activityId) },
+      where: { id: parseInt(context.params.activityId) },
+      include: {
+        level: true,
+      },
     });
 
     if (!activity) {
