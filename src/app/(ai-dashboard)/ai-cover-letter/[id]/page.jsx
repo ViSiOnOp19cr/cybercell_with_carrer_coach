@@ -6,7 +6,14 @@ import { notFound } from "next/navigation";
 import { getUserOnboardingStatus } from "../../../../actions/user";
 import { redirect } from "next/navigation";
 
-export default async function CoverLetterPage({ params }) {
+interface PageProps {
+  params: Promise<{
+    id: string,
+  }>;
+}
+
+export default async function CoverLetterPage({ params }: PageProps) {
+  const resolvedParams = await params;
   // Check if user is onboarded
   const { isOnboarded } = await getUserOnboardingStatus();
 
@@ -14,7 +21,7 @@ export default async function CoverLetterPage({ params }) {
     redirect("/onboarding");
   }
 
-  const coverLetter = await getCoverLetter(params.id);
+  const coverLetter = await getCoverLetter(resolvedParams.id);
 
   if (!coverLetter) {
     notFound();
@@ -23,7 +30,9 @@ export default async function CoverLetterPage({ params }) {
   return (
     <div className="max-w-3xl mx-auto">
       <div className="flex items-center justify-between mb-5">
-        <h1 className="text-4xl font-bold gradient-title">{coverLetter.jobTitle}</h1>
+        <h1 className="text-4xl font-bold gradient-title">
+          {coverLetter.jobTitle}
+        </h1>
         <div className="flex gap-2">
           <Link href="/ai-cover-letter">
             <Button variant="outline">
@@ -53,7 +62,9 @@ export default async function CoverLetterPage({ params }) {
         </div>
 
         <div
-          dangerouslySetInnerHTML={{ __html: coverLetter.content.replace(/\n/g, "<br>") }}
+          dangerouslySetInnerHTML={{
+            __html: coverLetter.content.replace(/\n/g, "<br>"),
+          }}
           className="whitespace-pre-wrap leading-relaxed"
         />
       </div>
