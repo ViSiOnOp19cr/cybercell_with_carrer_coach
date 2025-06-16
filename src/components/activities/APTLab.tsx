@@ -330,7 +330,7 @@ export default function APTLab({ activity, userId, progress }: APTLabProps) {
                       <Checkbox 
                         id={`ioc-${ioc.id}`}
                         checked={!!selectedIoCs[ioc.id]} 
-                        onCheckedChange={(checked: boolean | "indeterminate") => handleIoCSelection(ioc.id, checked === true)}
+                        onChange={(e) => handleIoCSelection(ioc.id, e.target.checked)}
                       />
                       <div>
                         <Label htmlFor={`ioc-${ioc.id}`} className="font-medium">{ioc.type}: {ioc.value}</Label>
@@ -448,9 +448,9 @@ export default function APTLab({ activity, userId, progress }: APTLabProps) {
                           <Checkbox 
                             id={`strategy-${scenario.id}-${strategy.id}`}
                             checked={(defenseStrategies[scenario.id] || []).includes(strategy.id)} 
-                            onCheckedChange={(checked: boolean | "indeterminate") => {
+                            onChange={(e) => {
                               const currentStrategies = defenseStrategies[scenario.id] || [];
-                              if (checked === true) {
+                              if (e.target.checked) {
                                 handleDefenseStrategyChange(scenario.id, [...currentStrategies, strategy.id]);
                               } else {
                                 handleDefenseStrategyChange(

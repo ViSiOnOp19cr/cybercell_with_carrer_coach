@@ -105,7 +105,7 @@ export default function CryptoHashingLab({ activity, userId, progress }: CryptoH
   useEffect(() => {
     const tasks: Record<string, boolean> = {};
     
-    cryptoTasks.forEach(task => {
+    cryptoTasks.forEach((task: any) => {
       if (task.id === "hash-generation" && successSteps.includes('hash')) {
         tasks[task.id] = true;
       } else if (task.id === "encrypt-message" && successSteps.includes('encrypt')) {
@@ -119,8 +119,8 @@ export default function CryptoHashingLab({ activity, userId, progress }: CryptoH
     
     // Calculate score based on completed tasks
     const newScore = cryptoTasks
-      .filter(task => tasks[task.id])
-      .reduce((total, task) => total + task.points, 0);
+      .filter((task: any) => tasks[task.id])
+      .reduce((total: any, task: any) => total + task.points, 0);
     
     setScore(newScore);
   }, [successSteps]);
@@ -339,7 +339,7 @@ export default function CryptoHashingLab({ activity, userId, progress }: CryptoH
       };
 
       // Calculate points earned based on score
-      const pointsEarned = Math.round((score / (cryptoTasks.reduce((sum, task) => sum + task.points, 0))) * activity.points);
+      const pointsEarned = Math.round((score / (cryptoTasks.reduce((sum: any, task: any) => sum + task.points, 0))) * activity.points);
       
       const response = await fetch(`/api/activities/${activity.id}/progress`, {
         method: "POST",
@@ -729,7 +729,7 @@ export default function CryptoHashingLab({ activity, userId, progress }: CryptoH
               <div className="space-y-4">
                 <h3 className="text-lg font-medium">Lab Tasks</h3>
                 <div className="space-y-3">
-                  {cryptoTasks.map(task => (
+                  {cryptoTasks.map((task: any) => (
                     <div key={task.id} className="flex flex-col p-3 border rounded-md">
                       <div className="flex items-start space-x-2">
                         <div className={`flex-shrink-0 mt-0.5 w-5 h-5 rounded-full flex items-center justify-center ${
@@ -775,7 +775,7 @@ export default function CryptoHashingLab({ activity, userId, progress }: CryptoH
                 <div className="bg-green-50 border border-green-100 rounded-md p-4">
                   <h3 className="text-green-800 font-medium">Lab Completed!</h3>
                   <p className="text-green-700 mt-1">
-                    You've earned {score} out of {cryptoTasks.reduce((sum, task) => sum + task.points, 0)} points.
+                    You've earned {score} out of {cryptoTasks.reduce((sum: any, task: any) => sum + task.points, 0)} points.
                   </p>
                 </div>
               )}

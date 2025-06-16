@@ -29,7 +29,7 @@ interface Resource {
   id: string;
   name: string;
   type: string;
-  icon: JSX.Element;
+  icon: React.ReactElement;
 }
 
 interface Permission {
@@ -501,8 +501,8 @@ export default function AccessControlMatrixLab({ activity, userId, progress }: A
                                     <div key={`${user.id}-${resource.id}-${action}`} className="flex items-center space-x-1">
                                       <Checkbox 
                                         id={`${user.id}-${resource.id}-${action}`}
-                                        checked={permission?.[action as keyof Permission] || false}
-                                        onCheckedChange={() => togglePermission(
+                                        checked={Boolean(permission?.[action as keyof Permission]) || false}
+                                        onChange={() => togglePermission(
                                           user.id, 
                                           resource.id, 
                                           action as "read" | "write" | "execute" | "delete"

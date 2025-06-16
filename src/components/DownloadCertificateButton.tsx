@@ -105,41 +105,54 @@ export default function DownloadCertificateButton({
       
       // Add certificate content with only standard RGB colors
       certificateContainer.innerHTML = `
-        <div style="text-align: center; margin-bottom: 30px; background-color: rgb(102,178,255);">
-          <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
-            <div style="background-color: rgba(34, 197, 94, 0.1); border-radius: 50%; padding: 10px; margin-right: 10px;">
-              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgb(255,255,255)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                <circle cx="12" cy="7" r="4"></circle>
-              </svg>
-            </div>
-            <span style="font-size: 32px; font-weight: bold; color: rgb(255,255,255);">CyberQuest</span>
-          </div>
-          <h1 style="font-size: 36px; color: rgb(255,255,255); margin-bottom: 10px;">Certificate of Achievement</h1>
-          <h2 style="font-size: 28px; margin-bottom: 20px; color: rgb(255, 255, 255);">Cybersecurity Master Certificate</h2>
-          <p style="font-size: 18px; margin-bottom: 30px; color: white;">This certifies that</p>
-          <p style="font-size: 30px; font-weight: bold; margin-bottom: 30px; color: white;">${userName}</p>
-          <p style="font-size: 18px; margin-bottom: 30px; color: white;">has successfully completed the comprehensive cybersecurity training program 
-          and demonstrated exceptional knowledge across multiple security domains.</p>
-          <div style="display: flex; justify-content: space-between; margin-top: 50px; color: white;">
-            <div>
-              <p style="font-size: 14px; margin-bottom: 5px; color: rgb(255,255,255);">Date Issued</p>
-              <p style="font-size: 16px; font-weight: bold; color: white;">${new Date().toLocaleDateString('en-US', { 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-              })}</p>
-            </div>
-            <div>
-              <p style="font-size: 14px; margin-bottom: 5px; color: rgb(255,255,255);">Certificate ID</p>
-              <p style="font-size: 16px; font-weight: bold; color: white;">${certData?.verificationCode || 'Generating...'}</p>
-            </div>
-          </div>
-          <div style="position: absolute; bottom: 30px; left: 0; right: 0; text-align: center;">
-            <p style="font-size: 14px; color: rgb(156, 163, 175);">Verify this certificate at cyberquest.com/verify</p>
-          </div>
+  <div style="max-width: 800px; margin: 0 auto; padding: 40px; background: linear-gradient(to bottom right, #e0f7ff, #ffffff); border-radius: 20px; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15); font-family: 'Segoe UI', sans-serif; position: relative;">
+    
+    <div style="text-align: center; margin-bottom: 40px;">
+      <div style="display: flex; align-items: center; justify-content: center;">
+        <div style="background-color: #00c9a7; border-radius: 50%; padding: 12px; margin-right: 12px;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
         </div>
-      `;
+        <span style="font-size: 32px; font-weight: 600; color: #0f172a;">CyberQuest</span>
+      </div>
+    </div>
+
+    <h1 style="text-align: center; font-size: 36px; color: #0f172a; margin-bottom: 10px;">Certificate of Achievement</h1>
+    <h2 style="text-align: center; font-size: 24px; color: #0284c7; margin-bottom: 30px;">Cybersecurity Master Certificate</h2>
+
+    <p style="text-align: center; font-size: 18px; color: #334155; margin-bottom: 10px;">This is to certify that</p>
+    <p style="text-align: center; font-size: 30px; font-weight: bold; color: #0f172a; margin-bottom: 20px;">${userName}</p>
+
+    <p style="text-align: center; font-size: 18px; color: #334155; line-height: 1.6; margin-bottom: 40px;">
+      has successfully completed the comprehensive cybersecurity training program and demonstrated exceptional knowledge across multiple security domains.
+    </p>
+
+    <div style="display: flex; justify-content: space-between; padding: 0 20px; margin-top: 20px;">
+      <div>
+        <p style="font-size: 14px; color: #64748b; margin-bottom: 5px;">Date Issued</p>
+        <p style="font-size: 16px; font-weight: bold; color: #0f172a;">
+          ${new Date().toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+          })}
+        </p>
+      </div>
+      <div style="text-align: right;">
+        <p style="font-size: 14px; color: #64748b; margin-bottom: 5px;">Certificate ID</p>
+        <p style="font-size: 16px; font-weight: bold; color: #0f172a;">
+          ${certData?.verificationCode || 'Generating...'}
+        </p>
+      </div>
+    </div>
+
+    <div style="position: absolute; bottom: 20px; left: 0; right: 0; text-align: center;">
+    </div>
+  </div>
+`;
+
       
       
       iframeDoc.body.appendChild(certificateContainer);
