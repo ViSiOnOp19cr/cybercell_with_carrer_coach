@@ -142,15 +142,16 @@ async function getLevelWithActivities(levelId: string, userId: string): Promise<
   }
 }
 
-export default async function LevelDetailPage({ params }: { params: { levelId: string } }) {
+export default async function LevelDetailPage({ params }: { params: Promise<{ levelId: string }> }) {
   const { userId } = await auth();
+  const { levelId } = await params;
   
   if (!userId) {
     redirect("/sign-in");
   }
   
   // Get user data
-  const levelData = await getLevelWithActivities(params.levelId, userId);
+  const levelData = await getLevelWithActivities(levelId, userId);
   
   if (!levelData) {
     return <div>Level not found or error fetching level data</div>;
