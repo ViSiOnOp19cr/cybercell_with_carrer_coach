@@ -24,8 +24,29 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+  
   return (
-    <ClerkProvider>
+    <ClerkProvider 
+      publishableKey={publishableKey}
+      appearance={{
+        baseTheme: undefined,
+        variables: {
+          colorPrimary: '#3b82f6',
+          colorBackground: '#030712',
+          colorInputBackground: '#111827',
+          colorInputText: '#f9fafb',
+          colorText: '#f9fafb',
+          colorTextSecondary: '#9ca3af',
+          colorShimmer: '#374151',
+          colorNeutral: '#6b7280',
+          colorDanger: '#ef4444',
+          colorSuccess: '#10b981',
+          colorWarning: '#f59e0b',
+          borderRadius: '0.375rem',
+        },
+      }}
+    >
       <html lang="en" suppressHydrationWarning>
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-950 text-gray-100`}
