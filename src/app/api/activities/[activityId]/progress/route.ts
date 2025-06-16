@@ -4,10 +4,11 @@ import { auth } from '@clerk/nextjs/server';
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { activityId: string } }
+  { params }: { params: Promise<{ activityId: string }> }
 ) {
   try {
     const { userId } = await auth();
+    const { activityId: activityIdParam } = await params;
     
     if (!userId) {
       return new NextResponse("Unauthorized", { status: 401 });
@@ -31,13 +32,13 @@ export async function POST(
     
     let activityId;
     try {
-      activityId = parseInt(params.activityId);
+      activityId = parseInt(activityIdParam);
       if (isNaN(activityId)) {
-        throw new Error(`Invalid activity ID: ${params.activityId}`);
+        throw new Error(`Invalid activity ID: ${activityIdParam}`);
       }
     } catch (error) {
       console.error("Error parsing activity ID:", error);
-      return new NextResponse(`Invalid activity ID: ${params.activityId}`, { status: 400 });
+      return new NextResponse(`Invalid activity ID: ${activityIdParam}`, { status: 400 });
     }
     
     // Get the activity to check its point value

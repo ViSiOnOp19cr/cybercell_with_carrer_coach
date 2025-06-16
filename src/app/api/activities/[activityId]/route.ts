@@ -3,10 +3,11 @@ import { db } from '@/lib/db';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { activityId: string } }
+  { params }: { params: Promise<{ activityId: string }> }
 ) {
   try {
-    const activityId = parseInt(params.activityId);
+    const { activityId: activityIdParam } = await params;
+    const activityId = parseInt(activityIdParam);
 
     if (isNaN(activityId)) {
       return NextResponse.json(
@@ -31,7 +32,7 @@ export async function GET(
 
     return NextResponse.json(activity);
   } catch (error) {
-    console.error(`Error fetching activity ${params.activityId}:`, error);
+    console.error(`Error fetching activity:`, error);
     return NextResponse.json(
       { error: 'Failed to fetch activity' },
       { status: 500 }
