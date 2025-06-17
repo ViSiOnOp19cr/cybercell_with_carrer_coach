@@ -1,17 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-export default function LegalPage() {
+// Separate component that uses useSearchParams
+function LegalContent() {
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState("terms");
 
   useEffect(() => {
     // Get the hash from the URL to set the active tab
     const hash =
-      searchParams.get("tab") || window.location.hash.replace("#", "");
+      searchParams.get("tab") || (typeof window !== "undefined" ? window.location.hash.replace("#", "") : "");
     if (hash && ["terms", "privacy", "cookies"].includes(hash)) {
       setActiveTab(hash);
     }
@@ -233,5 +234,26 @@ export default function LegalPage() {
         </TabsContent>
       </Tabs>
     </div>
+  );
+}
+
+// Loading fallback component
+function LegalLoadingFallback() {
+  return (
+    <div className="container mx-auto px-4 pt-24 pb-12">
+      <h1 className="text-3xl font-bold mb-8 text-center">Legal Policies</h1>
+      <div className="flex justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    </div>
+  );
+}
+
+// Main page component with Suspense boundary
+export default function LegalPage() {
+  return (
+    <Suspense fallback={<LegalLoadingFallback />}>
+      <LegalContent />
+    </Suspense>
   );
 }

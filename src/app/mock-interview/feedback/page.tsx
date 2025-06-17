@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
-export default function FeedbackPage() {
+// Separate component that uses useSearchParams
+function FeedbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const sessionId = searchParams.get('sessionId');
@@ -289,6 +290,27 @@ export default function FeedbackPage() {
         </Link>
       </div>
     </div>
+  );
+}
+
+// Loading fallback component
+function FeedbackLoadingFallback() {
+  return (
+    <div className="container mx-auto px-4 py-16 max-w-4xl">
+      <div className="flex flex-col items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
+        <p className="mt-4 text-gray-400">Loading feedback...</p>
+      </div>
+    </div>
+  );
+}
+
+// Main page component with Suspense boundary
+export default function FeedbackPage() {
+  return (
+    <Suspense fallback={<FeedbackLoadingFallback />}>
+      <FeedbackContent />
+    </Suspense>
   );
 }
 

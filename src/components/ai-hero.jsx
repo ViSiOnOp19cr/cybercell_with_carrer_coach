@@ -12,18 +12,22 @@ const HeroSection = () => {
     const imageElement = imageRef.current;
 
     const handleScroll = () => {
-      const scrollPosition = window.scrollY;
-      const scrollThreshold = 100;
+      if (typeof window !== "undefined") {
+        const scrollPosition = window.scrollY;
+        const scrollThreshold = 100;
 
-      if (scrollPosition > scrollThreshold) {
-        imageElement.classList.add("scrolled");
-      } else {
-        imageElement.classList.remove("scrolled");
+        if (scrollPosition > scrollThreshold) {
+          imageElement.classList.add("scrolled");
+        } else {
+          imageElement.classList.remove("scrolled");
+        }
       }
     };
 
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    if (typeof window !== "undefined") {
+      window.addEventListener("scroll", handleScroll);
+      return () => window.removeEventListener("scroll", handleScroll);
+    }
   }, []);
 
   return (
