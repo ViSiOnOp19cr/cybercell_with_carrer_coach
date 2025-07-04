@@ -15,6 +15,11 @@ export default function SignUpPage() {
           elements: {
             formButtonPrimary: "bg-blue-600 hover:bg-blue-700",
             footerActionLink: "text-blue-600 hover:text-blue-700",
+            headerTitle: "Create your CyberQuest account",
+            headerSubtitle: "Sign up to get started with our cybersecurity platform",
+          },
+          variables: {
+            colorPrimary: "#3b82f6",
           },
         }}
         redirectUrl="/dashboard"

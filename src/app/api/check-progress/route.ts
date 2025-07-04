@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
     
-    // Check if the user exists
+    // Get the user with all progress data
     const user = await db.user.findUnique({
       where: { clerkId: userId },
       include: {
@@ -28,12 +28,11 @@ export async function GET(req: NextRequest) {
     });
     
     if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+      return new NextResponse("User not found", { status: 404 });
     }
     
-    // Calculate user's total points from all levels
-    let fixedIssues = [];
-    let totalCalculatedPoints = 0;
+    const fixedIssues: any[] = [];
+    let levelProgressUpdated = false;
     
     // Process each level
     for (const progress of user.progress) {
@@ -71,64 +70,95 @@ export async function GET(req: NextRequest) {
         }
       }
       
-      // Update user progress if it doesn't match
-      if (progress.pointsEarned !== levelPoints || progress.activitiesCompleted !== completedActivities) {
+      // Check if level should be marked as completed
+      const shouldBeCompleted = levelPoints >= progress.level.minPointsToPass;
+      
+      if (shouldBeCompleted && !progress.isCompleted) {
+        // Update the level progress to completed
         await db.userProgress.update({
           where: { id: progress.id },
           data: {
             pointsEarned: levelPoints,
             activitiesCompleted: completedActivities,
-            isCompleted: levelPoints >= progress.level.minPointsToPass
+            isCompleted: true,
+            completedAt: new Date()
+          }
+        });
+        
+        levelProgressUpdated = true;
+        
+        fixedIssues.push({
+          levelId: progress.levelId,
+          levelName: progress.level.name,
+          pointsEarned: levelPoints,
+          minPointsToPass: progress.level.minPointsToPass,
+          wasCompleted: false,
+          nowCompleted: true
+        });
+        
+        // Update user's current level if this was their current level
+        if (user.currentLevel === progress.level.order) {
+          await db.user.update({
+            where: { id: user.id },
+            data: {
+              currentLevel: progress.level.order + 1
+            }
+          });
+          
+          fixedIssues.push({
+            userCurrentLevel: `Updated from ${user.currentLevel} to ${progress.level.order + 1}`
+          });
+        }
+      } else if (levelPoints !== progress.pointsEarned || completedActivities !== progress.activitiesCompleted) {
+        // Update the points and activities count even if not completed
+        await db.userProgress.update({
+          where: { id: progress.id },
+          data: {
+            pointsEarned: levelPoints,
+            activitiesCompleted: completedActivities
           }
         });
         
         fixedIssues.push({
-          level: progress.level.order,
+          levelId: progress.levelId,
+          levelName: progress.level.name,
           oldPoints: progress.pointsEarned,
           newPoints: levelPoints,
-          oldActivitiesCompleted: progress.activitiesCompleted,
-          newActivitiesCompleted: completedActivities
+          oldActivities: progress.activitiesCompleted,
+          newActivities: completedActivities
         });
       }
-      
-      totalCalculatedPoints += levelPoints;
     }
     
-    // Update user's total points if it doesn't match
-    if (user.totalPoints !== totalCalculatedPoints) {
+    // Recalculate user's total points
+    const allCompletedActivities = await db.activityProgress.findMany({
+      where: {
+        userId: user.id,
+        isCompleted: true
+      }
+    });
+    
+    const totalPoints = allCompletedActivities.reduce((sum, activity) => sum + activity.pointsEarned, 0);
+    
+    if (totalPoints !== user.totalPoints) {
       await db.user.update({
         where: { id: user.id },
-        data: {
-          totalPoints: totalCalculatedPoints
-        }
+        data: { totalPoints }
       });
       
       fixedIssues.push({
-        user: user.id,
-        oldTotalPoints: user.totalPoints,
-        newTotalPoints: totalCalculatedPoints
+        userTotalPoints: `Updated from ${user.totalPoints} to ${totalPoints}`
       });
     }
     
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
+      message: `Fixed ${fixedIssues.length} issues`,
       fixedIssues,
-      user: {
-        id: user.id,
-        totalPoints: totalCalculatedPoints,
-        currentLevel: user.currentLevel,
-        levels: user.progress.map(p => ({
-          id: p.levelId,
-          order: p.level.order,
-          pointsEarned: p.pointsEarned,
-          minPointsToPass: p.level.minPointsToPass,
-          isCompleted: p.isCompleted,
-          activitiesCompleted: p.activitiesCompleted
-        }))
-      }
+      levelProgressUpdated
     });
   } catch (error: any) {
-    console.error("[CHECK_PROGRESS]", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("Error checking progress:", error);
+    return new NextResponse(`Error: ${error.message}`, { status: 500 });
   }
 } 

@@ -7,7 +7,6 @@ import { redirect } from "next/navigation";
 import { Shield, Terminal, Trophy, Clock, ChevronRight } from "lucide-react";
 import { UserProgress, UserAchievement, Achievement, Level } from "@/lib/types";
 import ProfileSetupButton from "@/components/ProfileSetupButton";
-import FixProgressButton from "@/components/FixProgressButton";
 
 interface UserProgressWithLevel extends UserProgress {
   level: Level;
@@ -94,7 +93,6 @@ export default async function DashboardPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Welcome back, {userData.firstName || "Agent"}</h1>
         <div className="flex items-center space-x-3">
-          <FixProgressButton />
           <Link href="/profile" className="text-green-400 hover:text-green-300 flex items-center">
             View Profile <ChevronRight className="ml-1 h-4 w-4" />
           </Link>

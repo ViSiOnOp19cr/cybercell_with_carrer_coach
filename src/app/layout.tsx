@@ -45,6 +45,12 @@ export default function RootLayout({
           colorWarning: '#f59e0b',
           borderRadius: '0.375rem',
         },
+        elements: {
+          logoBox: "hidden",
+          logoImage: "hidden",
+          formButtonPrimary: "bg-blue-600 hover:bg-blue-700",
+          footerActionLink: "text-blue-600 hover:text-blue-700",
+        }
       }}
     >
       <html lang="en" suppressHydrationWarning>

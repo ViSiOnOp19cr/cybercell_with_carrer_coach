@@ -15,6 +15,13 @@ export default function SignInPage() {
           elements: {
             formButtonPrimary: "bg-blue-600 hover:bg-blue-700",
             footerActionLink: "text-blue-600 hover:text-blue-700",
+            headerTitle: "Sign in to CyberQuest",
+            headerSubtitle: "Welcome back! Please sign in to continue",
+            logoBox: "hidden",
+            logoImage: "hidden",
+          },
+          variables: {
+            colorPrimary: "#3b82f6",
           },
         }}
         redirectUrl="/dashboard"

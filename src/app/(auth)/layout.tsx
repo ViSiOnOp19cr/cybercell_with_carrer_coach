@@ -6,13 +6,7 @@ const AuthLayout = ({ children }: PropsWithChildren) => {
     <div className="flex h-screen w-full">
       <div className="flex h-full w-full flex-col items-center justify-center md:w-1/2">
         <div className="mb-8">
-          <Image
-            src="/logo.svg"
-            width={180}
-            height={60}
-            alt="Cybersecurity Platform Logo"
-            priority
-          />
+          
         </div>
         <div className="w-full max-w-md px-6">
           {children}

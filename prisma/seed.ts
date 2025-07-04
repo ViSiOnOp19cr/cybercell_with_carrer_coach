@@ -25,7 +25,7 @@ async function main() {
       name: 'Network Security',
       description: 'Explore network protocols, firewalls, and packet analysis techniques.',
       order: 2,
-      minPointsToPass: 120
+      minPointsToPass: 85  
     },
     {
       name: 'Web Security',
